@@ -6,13 +6,17 @@ const int total_age_groups = 5; //total number of age groups
 const int max_transport_types = 15; //max number of different transport mode per group
 
 //each node holds one resident's data
-struct Node{
+struct Resident{
     string residentID;
     int age;
     string modeOfTransport;
     int dailyDistance; 
     float carbonEmissionFactor;
     int averageDayPerMonth;
+};
+
+struct Node{
+    Resident data;
     Node* next; 
 };
 
@@ -71,7 +75,7 @@ string getAgeGroupLabel(int groupIndex){
 //calculates one resident monthly CO2 emission
 //formula = emission factors * distance per day * days per month
 float calculateMonthlyCO2(const Node* resident){
-    return resident->carbonEmissionFactor * (float)resident->dailyDistance * (float)resident->averageDayPerMonth;
+    return resident->data.carbonEmissionFactor * (float)resident->data.dailyDistance * (float)resident->data.averageDayPerMonth;
 }
 
 //adds mode to tally for one age group
@@ -121,13 +125,13 @@ void categorizeByAgeGroup(Node* head, AgeGroupSummary groupSummary[]){
     //walk through every resident in the linked list
     Node* current = head;
     while(current != nullptr){
-        int groupIndex = getAgeGroupIndex(current->age); //find which age group the resident belongs to
+        int groupIndex = getAgeGroupIndex(current->data.age); //find which age group the resident belongs to
         if(groupIndex != -1){ //resident is skipped if age is outside defined range
             float residentCO2 = calculateMonthlyCO2(current); //calculate how much CO2 this resident produce per month
             groupSummary[groupIndex].totalResidents++; //add resident to their group count
             groupSummary[groupIndex].totalCO2 += residentCO2; //add CO2 to their group total
             grandTotalCO2 += residentCO2; //also add CO2 to overall grand total
-            addToTransportCount(groupSummary[groupIndex].transportUsage, current->modeOfTransport); //record which transport mode the resident use
+            addToTransportCount(groupSummary[groupIndex].transportUsage, current->data.modeOfTransport); //record which transport mode the resident use
         }
         current = current->next; //move to next resident
     }
