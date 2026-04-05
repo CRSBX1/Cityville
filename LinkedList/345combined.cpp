@@ -4,7 +4,7 @@
 #include <iomanip>
 using namespace std;
 
-const int total_age_groups    = 5; //total number of age groups
+const int total_age_groups = 5; //total number of age groups
 const int max_transport_types = 15; //max number of different transport mode per group
 
 //each node holds one resident's data
@@ -30,6 +30,12 @@ struct TransportCount {
     int totalModes;
 };
 
+//a lightweight node that points to an existing resident node, used to build per-group lists
+struct GroupMemberNode {
+    Node* residentPtr; //points to the actual resident node in the city list
+    GroupMemberNode* next;
+};
+
 //summary for one age group
 struct AgeGroupSummary {
     string groupLabel;
@@ -39,6 +45,7 @@ struct AgeGroupSummary {
     float percentOfGrandTotal;
     string preferredTransportMode;
     TransportCount transportUsage;
+    GroupMemberNode* membersHead; //head of this group's member list
 };
 
 //returns which age group index a given age belongs to
@@ -91,9 +98,9 @@ void addToTransportCount(TransportCount& tally, const string& mode, float co2) {
     }
     //if mode not found, add mode as new entry (new transport type)
     if(tally.totalModes < max_transport_types) {
-        tally.modeName[tally.totalModes]  = mode; //store mode name
+        tally.modeName[tally.totalModes] = mode; //store mode name
         tally.userCount[tally.totalModes] = 1; //first resident using the new mode
-        tally.modeCO2[tally.totalModes]   = co2; //set initial CO2 for this mode
+        tally.modeCO2[tally.totalModes] = co2; //set initial CO2 for this mode
         tally.totalModes++; //increase mode count
     }
 }
@@ -113,6 +120,7 @@ string getMostUsedMode(const TransportCount& tally) {
 }
 
 //categorizes all residents from linked list into their age groups and computes summaries
+//also links each resident node into a per-group member list
 void categorizeByAgeGroup(Node* head, AgeGroupSummary groupSummary[]) {
     //initialize every group to 0 before counting
     for(int i = 0; i < total_age_groups; i++) {
@@ -123,6 +131,7 @@ void categorizeByAgeGroup(Node* head, AgeGroupSummary groupSummary[]) {
         groupSummary[i].percentOfGrandTotal    = 0.0f;
         groupSummary[i].preferredTransportMode = "None";
         groupSummary[i].transportUsage.totalModes = 0;
+        groupSummary[i].membersHead            = NULL; //empty member list for each group
     }
     float grandTotalCO2 = 0.0f; //keeps running total of CO2 across all groups combined
 
@@ -136,8 +145,14 @@ void categorizeByAgeGroup(Node* head, AgeGroupSummary groupSummary[]) {
             groupSummary[groupIndex].totalCO2 += residentCO2; //add CO2 to their group total
             grandTotalCO2 += residentCO2; //also add CO2 to overall grand total
             addToTransportCount(groupSummary[groupIndex].transportUsage, current->data.ModeOfTransport, residentCO2); //record which transport mode the resident uses
+            
+            //link this resident into the group's member list
+            GroupMemberNode* gNode = new GroupMemberNode();
+            gNode->residentPtr = current;
+            gNode->next = groupSummary[groupIndex].membersHead; 
+            groupSummary[groupIndex].membersHead = gNode;
         }
-        current = current->next; //move to next resident
+        current = current->next;
     }
 
     //calculate avg and percentages
@@ -150,6 +165,19 @@ void categorizeByAgeGroup(Node* head, AgeGroupSummary groupSummary[]) {
             }
             groupSummary[i].preferredTransportMode = getMostUsedMode(groupSummary[i].transportUsage); //find which transport mode is most used by residents in this group
         }
+    }
+}
+
+//frees all GroupMemberNode linked lists inside a groupSummary array
+void freeMemberLists(AgeGroupSummary groupSummary[]) {
+    for(int i = 0; i < total_age_groups; i++) {
+        GroupMemberNode* current = groupSummary[i].membersHead;
+        while(current != NULL) {
+            GroupMemberNode* temp = current;
+            current = current->next;
+            delete temp; //release each wrapper node (does not touch the actual resident node)
+        }
+        groupSummary[i].membersHead = NULL; //reset head after freeing
     }
 }
 
@@ -185,14 +213,14 @@ void loadData(Node*& head, string filename) {
         string temp;
 
         getline(ss, r.ResidentId, ',');
-        getline(ss, temp, ','); 
+        getline(ss, temp, ',');
         r.Age = stoi(temp);
         getline(ss, r.ModeOfTransport, ',');
-        getline(ss, temp, ','); 
+        getline(ss, temp, ',');
         r.DailyDistance = stoi(temp);
-        getline(ss, temp, ','); 
+        getline(ss, temp, ',');
         r.CarbonEmissionFactor = stof(temp);
-        getline(ss, temp, ','); 
+        getline(ss, temp, ',');
         r.AverageDayPerMonth = stoi(temp);
         insert(head, r); //add to linked list
     }
@@ -205,6 +233,146 @@ void printSeparator(int width, char c) {
         cout << c;
     }
     cout << endl;
+}
+
+//prints the standard resident table column header
+void printResidentHeader(int width) {
+    printSeparator(width, '-');
+    cout << left
+         << setw(14) << "Resident ID"
+         << setw(8)  << "Age"
+         << setw(20) << "Mode of Transport"
+         << setw(16) << "Daily Dist (km)"
+         << setw(14) << "CO2 Factor"
+         << setw(10) << "Days/Month"
+         << endl;
+    printSeparator(width, '-');
+}
+
+//prints one resident's data row
+void printResidentRow(Node* res) {
+    cout << left
+         << setw(14) << res->data.ResidentId
+         << setw(8)  << res->data.Age
+         << setw(20) << res->data.ModeOfTransport
+         << setw(16) << res->data.DailyDistance
+         << setw(14) << res->data.CarbonEmissionFactor
+         << setw(10) << res->data.AverageDayPerMonth
+         << endl;
+}
+
+//prints raw linked-list data for one city
+void printList(Node* head) {
+    Node* temp = head;
+    while (temp != NULL) {
+        printResidentRow(temp); //print one resident's data row
+        temp = temp->next;
+    }
+}
+
+//displays raw data for all three cities with a header
+void displayRawData(Node* headA, Node* headB, Node* headC) {
+    Node*  lists[3] = { headA,    headB,    headC    };
+    string names[3] = { "City A", "City B", "City C" };
+
+    int width = 82;
+    for(int l = 0; l < 3; l++) {
+        printSeparator(width, '=');
+        cout << names[l] << endl;
+        printResidentHeader(width);
+        printSeparator(width, '-');
+        printList(lists[l]); //print all residents for this city
+        printSeparator(width, '=');
+        cout << endl;
+    }
+}
+
+//displays categorized data per city
+void displayCategorizedData(Node* headA, Node* headB, Node* headC) {
+    Node*  lists[3] = { headA,    headB,    headC    };
+    string names[3] = { "City A", "City B", "City C" };
+
+    int width = 82;
+
+    for(int l = 0; l < 3; l++) {
+        AgeGroupSummary groups[total_age_groups];
+        categorizeByAgeGroup(lists[l], groups); //single pass: fills summaries and builds member lists
+
+        printSeparator(width, '=');
+        cout << names[l] << endl;
+        printSeparator(width, '=');
+
+        //print residents group by group by traversing each group's member linked list
+        for(int g = 0; g < total_age_groups; g++) {
+            if(groups[g].membersHead == NULL) {
+                continue; //skip empty groups
+            }
+
+            cout << "\nCategory: " << groups[g].groupLabel << endl;
+            printResidentHeader(width);
+
+            //traverse the group's member linked list and print each resident
+            GroupMemberNode* gCurrent = groups[g].membersHead;
+            while(gCurrent != NULL) {
+                printResidentRow(gCurrent->residentPtr); 
+                gCurrent = gCurrent->next; //move to next member in this group
+            }
+        }
+
+        printSeparator(width, '=');
+        cout << endl;
+
+        freeMemberLists(groups); //release all GroupMemberNode wrapper nodes for this city
+    }
+}
+
+//displays categorized data (all cities combined)
+void displayCategorizedDataAllCities(Node* headA, Node* headB, Node* headC) {
+    Node*  lists[3] = {headA, headB, headC};
+    int width = 82;
+
+    //copy all residents from all three cities into one combined linked list
+    Node* combined = NULL;
+    for(int l = 0; l < 3; l++) {
+        Node* current = lists[l];
+        while(current != NULL) {
+            insert(combined, current->data); //insert a copy of each resident into combined list
+            current = current->next;
+        }
+    }
+
+    AgeGroupSummary groups[total_age_groups];
+    categorizeByAgeGroup(combined, groups); //single pass over combined list
+
+    //print residents group by group by traversing each group's member linked list
+    for(int g = 0; g < total_age_groups; g++) {
+        if(groups[g].membersHead == NULL) {
+            continue; //skip empty groups
+        }
+
+        cout << "\nCategory: " << groups[g].groupLabel << endl;
+        printResidentHeader(width);
+
+        //traverse the group's member linked list and print each resident
+        GroupMemberNode* gCurrent = groups[g].membersHead;
+        while(gCurrent != NULL) {
+            printResidentRow(gCurrent->residentPtr);
+            gCurrent = gCurrent->next;
+        }
+    }
+
+    printSeparator(width, '=');
+    cout << endl;
+
+    freeMemberLists(groups); //release all GroupMemberNode wrapper nodes
+
+    //free the combined list 
+    Node* curr = combined;
+    while(curr != NULL) {
+        Node* temp = curr;
+        curr = curr->next;
+        delete temp; //release each copied node
+    }
 }
 
 //displays carbon emissions broken down by transport mode for one city
@@ -293,6 +461,8 @@ void displayTable1_ByAgeGroup(Node* head, const string& cityName) {
 
     printSeparator(width, '=');
     cout << endl;
+
+    freeMemberLists(groups); //release all GroupMemberNode wrapper nodes
 }
 
 //displays total emissions per transport mode across all cities
@@ -412,25 +582,40 @@ void mainMenu(Node* cityA, Node* cityB, Node* cityC) {
     int choice;
 
     do {
-        printSeparator(53, '=');
+        printSeparator(57, '=');
         cout << "Carbon Emission Analysis System\n";
-        cout << "1. View emissions per mode of transport\n";
-        cout << "2. View emissions per age group comparison\n";
-        cout << "3. View emissions by transport mode across all cities\n";
-        cout << "4. View cross-city comparison\n";
+        cout << "1. View raw data\n";
+        cout << "2. View categorized data per city\n";
+        cout << "3. View categorized data across all cities\n";
+        cout << "4. View emissions per mode of transport\n";
+        cout << "5. View emissions per age group comparison\n";
+        cout << "6. View emissions by transport mode across all cities\n";
+        cout << "7. View cross-city comparison\n";
         cout << "0. Exit\n";
-        printSeparator(53, '=');
+        printSeparator(57, '=');
         cout << "Enter choice: ";
         cin >> choice;
 
         switch (choice) {
-            case 1: //carbon emissions per mode of transport, displayed per city
+            case 1:
+                cout << "\n==================================== Raw Data ====================================" << endl << endl;
+                displayRawData(cityA, cityB, cityC);
+                break;
+            case 2:
+                cout << "\n============================= Data by Age Categorization =========================" << endl << endl;
+                displayCategorizedData(cityA, cityB, cityC);
+                break;
+            case 3:
+                cout << "\n================ Data by Age Categorization (All Cities Combined) ================" << endl << endl;
+                displayCategorizedDataAllCities(cityA, cityB, cityC);
+                break;
+            case 4: //carbon emissions per mode of transport, displayed per city
                 cout << "\n================== Carbon Emissions Per Mode of Transport ==================" << endl << endl;
                 displayEmissionsByTransportMode(cityA, "City A");
                 displayEmissionsByTransportMode(cityB, "City B");
                 displayEmissionsByTransportMode(cityC, "City C");
                 break;
-            case 2:
+            case 5:
                 //comparison tables across datasets and age groups
                 cout << "\n========================================= Comparison Tables =========================================" << endl << endl;
                 //per city breakdown by age group
@@ -438,11 +623,11 @@ void mainMenu(Node* cityA, Node* cityB, Node* cityC) {
                 displayTable1_ByAgeGroup(cityB, "City B");
                 displayTable1_ByAgeGroup(cityC, "City C");
                 break;
-            case 3:
+            case 6:
                 //all cities merged, broken down by transport mode
                 displayTable2_CombinedTransport(cityA, cityB, cityC);
                 break;
-            case 4:
+            case 7:
                 //one row per city showing totals and extreme modes
                 displayTable3_CrossCity(cityA, cityB, cityC);
                 break;
@@ -451,15 +636,15 @@ void mainMenu(Node* cityA, Node* cityB, Node* cityC) {
 }
 
 int main() {
-    Node* cityA=NULL;
-    Node* cityB=NULL;
-    Node* cityC=NULL;
+    Node* cityA = NULL;
+    Node* cityB = NULL;
+    Node* cityC = NULL;
 
-    loadData(cityA,"CityA.txt");
-    loadData(cityB,"CityB.txt");
-    loadData(cityC,"CityC.txt");
+    loadData(cityA, "CityA.txt");
+    loadData(cityB, "CityB.txt");
+    loadData(cityC, "CityC.txt");
 
-    mainMenu(cityA,cityB,cityC);
+    mainMenu(cityA, cityB, cityC);
 
     //free all dynamically allocated nodes before exiting
     Node* lists[3] = { cityA, cityB, cityC };
