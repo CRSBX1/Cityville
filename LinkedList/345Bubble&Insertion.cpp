@@ -757,7 +757,8 @@ void sortingExperimentsMenu(Node* cityA, Node* cityB, Node* cityC){
         cin>>choice;
 
         if(choice == 4){
-            break;
+            cout<<endl;
+            break; 
         }
 
         SortField field;
