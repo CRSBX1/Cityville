@@ -834,7 +834,7 @@ void mainMenu(Node* cityA, Node* cityB, Node* cityC) {
 
     do {
         printSeparator(57, '=');
-        cout << "\nCarbon Emission Analysis System\n";
+        cout << "Carbon Emission Analysis System\n";
         cout << "1. View raw data\n";
         cout << "2. View categorized data per city\n";
         cout << "3. View categorized data across all cities\n";
