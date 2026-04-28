@@ -870,8 +870,9 @@ string toLower(const string& inputStr){
     return lowerStr; 
 }
 
+//for age, transport, distance
 void printSearchResults(Node* matchedHead, int matchCount, const string& label, const string& dataset){
-    int width = 96;
+    int width = 110;
     printSeparator(width, '=');
     cout<<"Search Results | Criteria: " <<label<< " | Dataset: " <<dataset<<endl;
     printSeparator(width, '=');
@@ -915,6 +916,51 @@ void printSearchResults(Node* matchedHead, int matchCount, const string& label, 
     cout<<endl;
 }
 
+//for combined
+void printSearchResultsCombined(Node* matchedHead, int matchCount, const string& label, const string& dataset){
+    int width = 150;
+    printSeparator(width, '=');
+    cout<<"Search Results | Criteria: " <<label<< " | Dataset: " <<dataset<<endl;
+    printSeparator(width, '=');
+    
+    if(matchCount == 0){
+        cout<<"No residents matched the search criteria."<<endl;
+        printSeparator(width, '=');
+        cout<<endl;
+        return;
+    }
+
+    cout<<left<<setw(14)<<"Resident ID"
+        <<setw(8)<<"Age"
+        <<setw(22)<<"Mode of Transport"
+        <<setw(24)<<"Daily Distance (km)"
+        <<setw(14)<<"CO2 Factor"
+        <<setw(12)<<"Days/Month"
+        <<setw(26)<<"Monthly CO2 (kg)"
+        <<endl;
+    printSeparator(width, '=');
+
+    //go through the matched results list and print each resident
+    Node* cur = matchedHead;
+    while(cur != NULL){
+        float co2 = calculateMonthlyCO2(cur); //calculate this resident monthly CO2
+        cout<<left
+            <<setw(14)<<cur->data.ResidentId
+            <<setw(8)<<cur->data.Age
+            <<setw(22)<<cur->data.ModeOfTransport
+            <<setw(16)<<cur->data.DailyDistance
+            <<setw(14)<<fixed<<setprecision(2)<<cur->data.CarbonEmissionFactor
+            <<setw(12)<<cur->data.AverageDayPerMonth
+            <<setw(18)<<fixed<<setprecision(2)<<co2
+            <<endl;
+        cur = cur->next; //move to the next matched resident
+    }
+     //print total match count
+    printSeparator(width, '-');
+    cout<<"Total matches: "<<matchCount<<endl;
+    printSeparator(width, '=');
+    cout<<endl;
+}
 
 //BINARY SEARCH - convert linked list to a temporary array 
 Resident* listToArray(Node* head, int& size){
@@ -986,8 +1032,8 @@ Node* sortListCopyByField(Node* head, const string& field){
     
     //rebuild a new linked list from the sorted array
     Node* sortedHead = NULL;
-    for(int i=size-1; i>=0; i--){
-        insert(sortedHead, arr[i]); //insert each resident from back to front
+    for(int i=0; i<size; i++){
+        insert(sortedHead, arr[i]); 
     }
     
     delete[] arr; //free temporary array from memory
@@ -1954,12 +2000,12 @@ void linearSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             label = "Age Group = " + getAgeGroupLabel(grp - 1);
 
             linearSearchByAgeGroup(lists[idx], minAge, maxAge, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED LINEAR]" + label, names[idx]);
+            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED LINEAR] " + label, names[idx]);
             freeList(unsortedHead);
 
             Node* sortedList = sortListCopyByField(lists[idx], "age");
             linearSearchByAgeGroup_Sorted(sortedList, minAge, maxAge, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED LINEAR]" + label, names[idx]);
+            printSearchResults(sortedHead, sortedCount, "[SORTED LINEAR] " + label, names[idx]);
             freeList(sortedHead);
             freeList(sortedList);
 
@@ -1972,12 +2018,12 @@ void linearSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             label = "Mode = " + mode;
             
             linearSearchByTransport(lists[idx], mode, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED LINEAR]" + label, names[idx]);
+            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED LINEAR] " + label, names[idx]);
             freeList(unsortedHead);
 
             Node* sortedList = sortListCopyByField(lists[idx], "transport");
             linearSearchByTransport_Sorted(sortedList, mode, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED LINEAR]" + label, names[idx]);
+            printSearchResults(sortedHead, sortedCount, "[SORTED LINEAR] " + label, names[idx]);
             freeList(sortedHead);
             freeList(sortedList);
 
@@ -2000,12 +2046,12 @@ void linearSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             label += " " + ss.str();
 
             linearSearchByDistance(lists[idx], threshold, op, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED LINEAR]" + label, names[idx]);
+            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED LINEAR] " + label, names[idx]);
             freeList(unsortedHead);
 
             Node* sortedList = sortListCopyByField(lists[idx], "distance");
             linearSearchByDistance_Sorted(sortedList, threshold, op, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED LINEAR]" + label, names[idx]);
+            printSearchResults(sortedHead, sortedCount, "[SORTED LINEAR] " + label, names[idx]);
             freeList(sortedHead);
             freeList(sortedList);
 
@@ -2019,7 +2065,7 @@ void linearSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             label = buildSearchLabel("Combined", ageGroup, targetMode, distThreshold, distOp);
 
             linearSearchCombined(lists[idx], ageGroup, targetMode, distThreshold, distOp, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[LINEAR COMBINED]" + label, names[idx]);
+            printSearchResultsCombined(unsortedHead, unsortedCount, "[LINEAR COMBINED] " + label, names[idx]);
             freeList(unsortedHead);
         }
 
@@ -2084,11 +2130,11 @@ void binarySearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             label = "Age Group = " + getAgeGroupLabel(grp - 1);
 
             binarySearchByAgeGroup_Unsorted(lists[idx], minAge, maxAge, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY]" + label, names[idx]);
+            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY] " + label, names[idx]);
             freeList(unsortedHead);
 
             binarySearchByAgeGroup(lists[idx], minAge, maxAge, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY]" + label, names[idx]);
+            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY] " + label, names[idx]);
             freeList(sortedHead);
 
         } else if(choice == 2) {
@@ -2100,11 +2146,11 @@ void binarySearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             label = "Mode = " + mode;
 
             binarySearchByTransport_Unsorted(lists[idx], mode, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY]" + label, names[idx]);
+            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY] " + label, names[idx]);
             freeList(unsortedHead);
 
             binarySearchByTransport(lists[idx], mode, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY]" + label, names[idx]);
+            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY] " + label, names[idx]);
             freeList(sortedHead);
 
         } else if(choice == 3) {
@@ -2117,11 +2163,11 @@ void binarySearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             label = "Distance = " + ss.str();
 
             binarySearchByDistance_Unsorted(lists[idx], target, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY]" + label, names[idx]);
+            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY] " + label, names[idx]);
             freeList(unsortedHead);
 
             binarySearchByDistance(lists[idx], target, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY]" + label, names[idx]);
+            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY] " + label, names[idx]);
             freeList(sortedHead);
         }
 
