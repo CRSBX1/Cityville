@@ -1055,66 +1055,6 @@ void linearSearchByDistance(Node* head, int threshold, char op, Node*& matchedHe
     }
 }
 
-//combined linear search
-void linearSearchCombined(Node* head, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount){
-    matchedHead = NULL; //initialize results list as empty
-    matchCount = 0; //initialize results list as empty
-
-    //match the selected age group to its range
-    int minAge, maxAge;
-    switch(ageGroup){
-        case 1:
-            minAge = 6; maxAge = 17; break; //children & teenagers
-        case 2:
-            minAge = 18; maxAge = 25; break; //university / young adults
-        case 3:
-            minAge = 26; maxAge = 45; break; //working adults early career
-        case 4:
-            minAge = 46; maxAge = 60; break; //working adults late career
-        case 5: 
-            minAge = 61; maxAge = 100; break; //senior citizens / retirees
-        default:
-            minAge = -1; maxAge = -1; break; //invalid group, filter will be skipped
-    }
-    bool filterAge = (ageGroup >= 1 && ageGroup <= 5); //age filter for valid group
-    bool filterTransport = !targetMode.empty(); //transport filter for valid group
-    bool filterDistance = (distOp == '>' || distOp == '<' || distOp == '='); //distance filter for valid group
-
-    string targetLower = toLower(targetMode); //convert transport target to lowercase for comparison
-
-    Node* current = head; //start scanning from first resident
-    while(current != NULL){
-        //each filter starts as passed and is only false if the resident fails the filter
-        bool passAge = true;
-        bool passTransport = true;
-        bool passDistance = true;
-
-        //apply age filter if it is valid
-        if(filterAge){
-            passAge = (current->data.Age >= minAge && current->data.Age <= maxAge);
-        }
-        //apply transport filter if it is valid
-        if(filterTransport){
-            passTransport = (toLower(current->data.ModeOfTransport) == targetLower);
-        }
-        //apply distance filter if it is valid
-        if(filterDistance){
-            if(distOp == '>' && !(current->data.DailyDistance > distThreshold)){
-                passDistance = false;
-            }else if(distOp == '<' && !(current->data.DailyDistance < distThreshold)){
-                passDistance = false;
-            }else if(distOp == '=' && !(current->data.DailyDistance == distThreshold)){
-                passDistance = false;
-            }       
-        }
-        //only include residents that passed every filter
-        if(passAge && passTransport && passDistance){
-            insert(matchedHead, current->data); //copy matching resident into results list
-            matchCount++; //increment match counter
-        }
-        current = current->next; //move to the next resident in the list
-    }
-}
 
 //LINEAR SEARCH (S0RTED)
 //the only difference between sorted and unsorted linear is that sorted linear implements early exits to stop scanning once no more matches can be found
