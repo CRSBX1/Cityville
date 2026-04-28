@@ -916,51 +916,6 @@ void printSearchResults(Node* matchedHead, int matchCount, const string& label, 
     cout<<endl;
 }
 
-//for combined
-void printSearchResultsCombined(Node* matchedHead, int matchCount, const string& label, const string& dataset){
-    int width = 150;
-    printSeparator(width, '=');
-    cout<<"Search Results | Criteria: " <<label<< " | Dataset: " <<dataset<<endl;
-    printSeparator(width, '=');
-    
-    if(matchCount == 0){
-        cout<<"No residents matched the search criteria."<<endl;
-        printSeparator(width, '=');
-        cout<<endl;
-        return;
-    }
-
-    cout<<left<<setw(14)<<"Resident ID"
-        <<setw(8)<<"Age"
-        <<setw(22)<<"Mode of Transport"
-        <<setw(24)<<"Daily Distance (km)"
-        <<setw(14)<<"CO2 Factor"
-        <<setw(12)<<"Days/Month"
-        <<setw(26)<<"Monthly CO2 (kg)"
-        <<endl;
-    printSeparator(width, '=');
-
-    //go through the matched results list and print each resident
-    Node* cur = matchedHead;
-    while(cur != NULL){
-        float co2 = calculateMonthlyCO2(cur); //calculate this resident monthly CO2
-        cout<<left
-            <<setw(14)<<cur->data.ResidentId
-            <<setw(8)<<cur->data.Age
-            <<setw(22)<<cur->data.ModeOfTransport
-            <<setw(16)<<cur->data.DailyDistance
-            <<setw(14)<<fixed<<setprecision(2)<<cur->data.CarbonEmissionFactor
-            <<setw(12)<<cur->data.AverageDayPerMonth
-            <<setw(18)<<fixed<<setprecision(2)<<co2
-            <<endl;
-        cur = cur->next; //move to the next matched resident
-    }
-     //print total match count
-    printSeparator(width, '-');
-    cout<<"Total matches: "<<matchCount<<endl;
-    printSeparator(width, '=');
-    cout<<endl;
-}
 
 //BINARY SEARCH - convert linked list to a temporary array 
 Resident* listToArray(Node* head, int& size){
@@ -1953,17 +1908,16 @@ void linearSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
         cout << "\n1. Search by age group" << endl;
         cout << "2. Search by mode of transport" << endl;
         cout << "3. Search by daily distance" << endl;
-        cout << "4. Combined search (all criteria)" << endl;
-        cout << "5. Back" << endl;
+        cout << "4. Back" << endl;
         printSeparator(57, '-');
         cout << "Select search type: ";
         cin >> choice;
 
-        if(choice == 5) {
+        if(choice == 4) {
             cout << endl;
             break;
         }
-        if(choice < 1 || choice > 4) {
+        if(choice < 1 || choice > 3) {
             cout << "Invalid choice. Please try again" << endl;
             continue;
         }
@@ -2055,21 +2009,9 @@ void linearSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             freeList(sortedHead);
             freeList(sortedList);
 
-        } else if(choice == 4) {
-            //combined search using all three criteria
-            int ageGroup;
-            string targetMode;
-            int distThreshold;
-            char distOp;
-            selectSearchCriteria(ageGroup, targetMode, distThreshold, distOp);
-            label = buildSearchLabel("Combined", ageGroup, targetMode, distThreshold, distOp);
-
-            linearSearchCombined(lists[idx], ageGroup, targetMode, distThreshold, distOp, unsortedHead, unsortedCount);
-            printSearchResultsCombined(unsortedHead, unsortedCount, "[LINEAR COMBINED] " + label, names[idx]);
-            freeList(unsortedHead);
         }
 
-    } while(choice != 5);
+    } while(choice != 4);
 }
 
 //sub-menu for binary search
