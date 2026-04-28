@@ -1242,7 +1242,6 @@ void binarySearchByTransport(Node* head, const string& targetMode, Node*& matche
     delete[] arr; //free temporary array from memory
 }
 
-
 //binary search by daily distance
 void binarySearchByDistance(Node* head, int target, Node*& matchedHead, int& matchCount){
     matchedHead = NULL; //initialize results list as empty
