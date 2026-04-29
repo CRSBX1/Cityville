@@ -872,7 +872,7 @@ string toLower(const string& inputStr){
 
 //for age, transport, distance
 void printSearchResults(Node* matchedHead, int matchCount, const string& label, const string& dataset){
-    int width = 110;
+    int width = 150;
     printSeparator(width, '=');
     cout<<"Search Results | Criteria: " <<label<< " | Dataset: " <<dataset<<endl;
     printSeparator(width, '=');
@@ -902,7 +902,7 @@ void printSearchResults(Node* matchedHead, int matchCount, const string& label, 
             <<setw(14)<<cur->data.ResidentId
             <<setw(8)<<cur->data.Age
             <<setw(22)<<cur->data.ModeOfTransport
-            <<setw(16)<<cur->data.DailyDistance
+            <<setw(24)<<cur->data.DailyDistance
             <<setw(14)<<fixed<<setprecision(2)<<cur->data.CarbonEmissionFactor
             <<setw(12)<<cur->data.AverageDayPerMonth
             <<setw(18)<<fixed<<setprecision(2)<<co2
@@ -996,144 +996,151 @@ Node* sortListCopyByField(Node* head, const string& field){
 }
 
 //LINEAR SEARCH (UNSORTED)
-//linear search by age group
-void linearSearchByAgeGroup(Node* head, int minAge, int maxAge, Node*& matchedHead, int& matchCount){
+//combined linear search (age, transport mode, distance)
+void linearSearchCombined_Unsorted(Node* head, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount){
     matchedHead = NULL; //initialize results list as empty
     matchCount = 0; //initialize results list as empty
+
+    //match the selected age group to its range
+    int minAge, maxAge;
+    switch(ageGroup){
+        case 1:
+            minAge = 6; maxAge = 17; break; //children & teenagers
+        case 2:
+            minAge = 18; maxAge = 25; break; //university / young adults
+        case 3:
+            minAge = 26; maxAge = 45; break; //working adults early career
+        case 4:
+            minAge = 46; maxAge = 60; break; //working adults late career
+        case 5: 
+            minAge = 61; maxAge = 100; break; //senior citizens / retirees
+        default:
+            minAge = -1; maxAge = -1; break; //invalid group, filter will be skipped
+    }
+    bool filterAge = (ageGroup >= 1 && ageGroup <= 5); //age filter for valid group
+    bool filterTransport = !targetMode.empty(); //transport filter for valid group
+    bool filterDistance = (distOp == '>' || distOp == '<' || distOp == '='); //distance filter for valid group
+
+    string targetLower = toLower(targetMode); //convert transport target to lowercase for comparison
+
     Node* current = head; //start scanning from first resident
     while(current != NULL){
-        //check whether this resident's age is within the specified range
-        if(current->data.Age >= minAge && current->data.Age <= maxAge){
+        //each filter starts as passed and is only false if the resident fails the filter
+        bool passAge = true;
+        bool passTransport = true;
+        bool passDistance = true;
+
+        //apply age filter if it is valid
+        if(filterAge){
+            passAge = (current->data.Age >= minAge && current->data.Age <= maxAge);
+        }
+        //apply transport filter if it is valid
+        if(filterTransport){
+            passTransport = (toLower(current->data.ModeOfTransport) == targetLower);
+        }
+        //apply distance filter if it is valid
+        if(filterDistance){
+            if(distOp == '>' && !(current->data.DailyDistance > distThreshold)){
+                passDistance = false;
+            }else if(distOp == '<' && !(current->data.DailyDistance < distThreshold)){
+                passDistance = false;
+            }else if(distOp == '=' && !(current->data.DailyDistance == distThreshold)){
+                passDistance = false;
+            }       
+        }
+        //only include residents that passed every filter
+        if(passAge && passTransport && passDistance){
             insert(matchedHead, current->data); //copy matching resident into results list
             matchCount++; //increment match counter
         }
         current = current->next; //move to the next resident in the list
     }
 }
-
-//linear seach by mode of transport
-void linearSearchByTransport(Node* head, const string& targetMode, Node*& matchedHead, int& matchCount){
-    matchedHead = NULL; //initialize results list as empty
-    matchCount = 0; //initialize results list as empty
-
-    string targetLower = toLower(targetMode); //change the target to lowercase for comparison
-
-    Node* current = head; //start scanning from first resident
-    while(current != NULL){
-        //compare resident transport mode (lowercase) against the target
-        if(toLower(current->data.ModeOfTransport) == targetLower){
-            insert(matchedHead, current->data); //copy matching resident into results list
-            matchCount++; //increment match counter
-        }
-        current = current->next; //move to the next resident in the list
-    }
-}
-
-//linear search by daily distance
-void linearSearchByDistance(Node* head, int threshold, char op, Node*& matchedHead, int& matchCount){
-    matchedHead = NULL; //initialize results list as empty
-    matchCount = 0; //initialize results list as empty
-
-    Node* current = head; //start scanning from first resident
-    while(current != NULL){
-        bool match = false; //assume no match 
-         
-        //check distance against threshold using the specified operator
-        if(op == '>' && current->data.DailyDistance > threshold){
-            match = true; //resident distance exceeds threshold
-        }else if(op == '<' && current->data.DailyDistance < threshold){
-            match = true; //resident distance is below threshold
-        }else if(op == '=' && current->data.DailyDistance == threshold){
-            match = true; //resident distance equals to threshold
-        }
-
-        if(match){
-            insert(matchedHead, current->data); //copy matching resident into results list
-            matchCount++; //increment match counter
-        }
-        current = current->next; //move to the next resident in the list
-    }
-}
-
 
 //LINEAR SEARCH (S0RTED)
 //the only difference between sorted and unsorted linear is that sorted linear implements early exits to stop scanning once no more matches can be found
-//linear seach by age
-void linearSearchByAgeGroup_Sorted(Node* head, int minAge, int maxAge, Node*& matchedHead, int& matchCount){
-    matchedHead = NULL; 
-    matchCount = 0; 
-    Node* current = head; 
-    while(current != NULL){
-        if(current->data.Age > maxAge){
-            break; //early exit 
-        }
-        if(current->data.Age >= minAge){
-            insert(matchedHead, current->data); 
-            matchCount++; 
-        }
-        current = current->next; 
+//combined linear search
+void linearSearchCombined_Sorted(Node* head, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount){
+    matchedHead = NULL; //initialize results list as empty
+    matchCount = 0; //initialize match counter to 0
+
+    //match the selected age group to its range
+    int minAge, maxAge;
+    switch(ageGroup){
+        case 1:
+            minAge = 6; maxAge = 17; break; //children & teenagers
+        case 2:
+            minAge = 18; maxAge = 25; break; //university / young adults
+        case 3:
+            minAge = 26; maxAge = 45; break; //working adults early career
+        case 4:
+            minAge = 46; maxAge = 60; break; //working adults late career
+        case 5: 
+            minAge = 61; maxAge = 100; break; //senior citizens / retirees
+        default:
+            minAge = -1; maxAge = -1; break; //invalid group, filter will be skipped
     }
-}
+    bool filterAge = (ageGroup >= 1 && ageGroup <= 5); //age filter for valid group
+    bool filterTransport = !targetMode.empty(); //transport filter for valid group
+    bool filterDistance = (distOp == '>' || distOp == '<' || distOp == '='); //distance filter for valid group
 
-//linear seach by mode of transport
-void linearSearchByTransport_Sorted(Node* head, const string& targetMode, Node*& matchedHead, int& matchCount){
-    matchedHead = NULL; 
-    matchCount = 0; 
+    string targetLower = toLower(targetMode); //convert transport target to lowercase for comparison
 
-    string targetLower = toLower(targetMode); 
-
-    Node* current = head; 
+    Node* current = head; //start scanning from first resident
     while(current != NULL){
-        if(toLower(current->data.ModeOfTransport) > targetLower){
-            break; //early exit
-        }
-        if(toLower(current->data.ModeOfTransport) == targetLower){
-            insert(matchedHead, current->data);
-            matchCount++; 
-        }
-        current = current->next; 
-    }
-}
+        //each filter starts as passed and is only false if the resident fails the filter
+        bool passAge = true;
+        bool passTransport = true;
+        bool passDistance = true;
 
-//linear search by daily distance
-void linearSearchByDistance_Sorted(Node* head, int threshold, char op, Node*& matchedHead, int& matchCount){
-    matchedHead = NULL; 
-    matchCount = 0; 
-
-    Node* current = head; 
-    while(current != NULL){
-        int dist = current->data.DailyDistance;
-        bool match = false; 
-         
-        if(op == '<'){
-            if(dist >= threshold){
-                break; //early exit
+        //apply age filter if it is valid
+        if(filterAge){
+            if(current->data.Age > maxAge){ 
+                break; //early exit, sorted by age
             }
-            match = true;
-        }else if(op == '='){
-            if(dist > threshold){
-                break; //early exit
-            }if(dist == threshold){
-                match = true;
+            passAge = (current->data.Age >= minAge);
+        }
+        //apply transport filter if it is valid
+        if(filterTransport){
+            string curMode = toLower(current->data.ModeOfTransport);
+            if(!filterAge && curMode > targetLower){
+                break; //early exit, only if age is not active
             }
-        }else if(op == '>'){
-            if(dist > threshold){
-                match = true;
+            passTransport = (curMode == targetLower);
+        }
+        //apply distance filter if it is valid
+        if(filterDistance){
+            int dist = current->data.DailyDistance;
+            if(!filterAge && !filterTransport){ //early exit only if age and transport is not active
+                if(distOp == '<' && dist >= distThreshold){
+                    break;
+                }if(distOp == '=' && dist > distThreshold){
+                    break;
+                }
+            }
+            if(distOp == '>' && dist > distThreshold){
+                passDistance = true;
+            }else if(distOp == '<' && dist < distThreshold){
+                passDistance = true;
+            }else if(distOp == '=' && dist == distThreshold){
+                passDistance = true;
+            }else{
+                passDistance = false;
             }
         }
-
-        if(match){
-            insert(matchedHead, current->data); 
-            matchCount++; 
+        //only include residents that passed every filter
+        if(passAge && passTransport && passDistance){
+            insert(matchedHead, current->data); //copy matching resident into results list
+            matchCount++; //increment match counter
         }
-        current = current->next; 
+        current = current->next; //move to the next resident in the list
     }
 }
 
 
 //BINARY SEARCH (SORTED)
 //binary search by age
-void binarySearchByAgeGroup(Node* head, int minAge, int maxAge, Node*& matchedHead, int& matchCount){
+void binarySearchByAgeGroup_Sorted(Node* head, int minAge, int maxAge, Node*& matchedHead, int& matchCount){
     matchedHead = NULL; //initialize results list as empty
     matchCount = 0; //initialize match counter to 0
 
@@ -1172,7 +1179,7 @@ void binarySearchByAgeGroup(Node* head, int minAge, int maxAge, Node*& matchedHe
 }
 
 //binary search by mode of transport
-void binarySearchByTransport(Node* head, const string& targetMode, Node*& matchedHead, int& matchCount){
+void binarySearchByTransport_Sorted(Node* head, const string& targetMode, Node*& matchedHead, int& matchCount){
     matchedHead = NULL; //initialize results list as empty
     matchCount = 0; //initialize match counter to 0
 
@@ -1243,7 +1250,7 @@ void binarySearchByTransport(Node* head, const string& targetMode, Node*& matche
 }
 
 //binary search by daily distance
-void binarySearchByDistance(Node* head, int target, Node*& matchedHead, int& matchCount){
+void binarySearchByDistance_Sorted(Node* head, int target, Node*& matchedHead, int& matchCount){
     matchedHead = NULL; //initialize results list as empty
     matchCount = 0; //initialize match counter to 0
 
@@ -1422,6 +1429,7 @@ void binarySearchByDistance_Unsorted(Node* head, int target, Node*& matchedHead,
 
     delete[] arr; 
 }
+
 
 //tree node for the transport-based tree used by BFS and DFS
 //tree structure: Root -> Transport Modes -> Age Groups -> Distance Ranges
@@ -1836,121 +1844,107 @@ string buildSearchLabel(const string& algoName, int ageGroup, const string& targ
 }
 
 //sub-menu for linear search
-void linearSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
+void linearSearchMenu(Node* cityA, Node* cityB, Node* cityC){
     Node* lists[3] = {cityA, cityB, cityC};
     string names[3] = {"City A", "City B", "City C"};
 
-    int choice;
-    do {
-        printSeparator(57, '-');
-        cout << "Linear Search" << endl;
-        cout << "\n1. Search by age group" << endl;
-        cout << "2. Search by mode of transport" << endl;
-        cout << "3. Search by daily distance" << endl;
-        cout << "4. Back" << endl;
-        printSeparator(57, '-');
-        cout << "Select search type: ";
-        cin >> choice;
+    printSeparator(57, '-');
+    cout << "Linear Search" << endl;
+    cout << "\nDataset:" << endl;
+    cout << "1. City A" << endl;
+    cout << "2. City B" << endl;
+    cout << "3. City C" << endl;
+    cout << "4. All Cities (Combined)" << endl;
+    cout << "5. Back" << endl;
+    printSeparator(57, '-');
+    cout << "Select dataset: ";
+    int cityChoice;
+    cin >> cityChoice;
 
-        if(choice == 4) {
-            cout << endl;
-            break;
-        }
-        if(choice < 1 || choice > 3) {
-            cout << "Invalid choice. Please try again" << endl;
-            continue;
-        }
+    if(cityChoice == 5) {
+        cout << endl;
+        return; //go back to searching menu
+    }
+    if(cityChoice < 1 || cityChoice > 4) {
+        cout << "Invalid choice. Default to City A" << endl;
+        cityChoice = 1;
+    }
 
-        int idx = selectCity(); //ask user which city to search
+    //collect all three search filters from user
+    int ageGroup;
+    string targetMode;
+    int distThreshold;
+    char distOp;
+    selectSearchCriteria(ageGroup, targetMode, distThreshold, distOp);
+    string label = buildSearchLabel("Linear", ageGroup, targetMode, distThreshold, distOp);
 
-        Node* unsortedHead = NULL, *sortedHead = NULL;
-        int unsortedCount = 0, sortedCount = 0;
-        string label;
+    Node* searchList = NULL; //points to the list that will be searched
+    string datasetName; //stores the name of selected dataset for display
 
-        if(choice == 1) {
-            //search by age group
-            cout << "\nSelect age group:" << endl;
-            cout << "1. Children & Teenagers        (6-17)" << endl;
-            cout << "2. University / Young Adults   (18-25)" << endl;
-            cout << "3. Working Adults Early Career (26-45)" << endl;
-            cout << "4. Working Adults Late Career  (46-60)" << endl;
-            cout << "5. Senior Citizens / Retirees  (61-100)" << endl;
-            cout << "Select group: ";
-            int grp;
-            cin >> grp;
-
-            int minAge, maxAge;
-            switch(grp) {
-                case 1: minAge = 6;  maxAge = 17;  break;
-                case 2: minAge = 18; maxAge = 25;  break;
-                case 3: minAge = 26; maxAge = 45;  break;
-                case 4: minAge = 46; maxAge = 60;  break;
-                case 5: minAge = 61; maxAge = 100; break;
-                default:
-                    cout << "Invalid group. Default to group 1" << endl;
-                    minAge = 6; maxAge = 17; grp = 1; break;
+    if(cityChoice == 4) {
+        //merge all 3 cities into 1 combined list
+        datasetName = "All Cities";
+        for(int l = 0; l < 3; l++) {
+            Node* cur = lists[l];
+            while(cur != NULL) {
+                insert(searchList, cur->data); //copy each resident into combined list
+                cur = cur->next;
             }
-            label = "Age Group = " + getAgeGroupLabel(grp - 1);
+        }
+    
+    }else{
+        //point directly to the selected city's list (no need to copy)
+        searchList = lists[cityChoice-1];
+        datasetName = names[cityChoice-1];
+    }
 
-            linearSearchByAgeGroup(lists[idx], minAge, maxAge, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED LINEAR] " + label, names[idx]);
-            freeList(unsortedHead);
+    //run unsorted linear, scan every resident
+    Node* matchedHead = NULL;
+    int matchCount = 0;
+    linearSearchCombined_Unsorted(searchList, ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+    printSearchResults(matchedHead, matchCount, "[UNSORTED LINEAR] " + label, datasetName);
+    freeList(matchedHead);
+    matchedHead = NULL;
+    matchCount = 0;
 
-            Node* sortedList = sortListCopyByField(lists[idx], "age");
-            linearSearchByAgeGroup_Sorted(sortedList, minAge, maxAge, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED LINEAR] " + label, names[idx]);
-            freeList(sortedHead);
-            freeList(sortedList);
+    //prepare a sorted copy list for sorted linear search
+    //the list is sorted by the first active filter so the early exit in sorted search works correctly
+    Node* sortedList = NULL;
+    bool linearSortedList = false;
 
-        } else if(choice == 2) {
-            //search by transport mode
-            cout << "\nEnter transport mode to search: ";
-            cin.ignore();
-            string mode;
-            getline(cin, mode);
-            label = "Mode = " + mode;
-            
-            linearSearchByTransport(lists[idx], mode, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED LINEAR] " + label, names[idx]);
-            freeList(unsortedHead);
-
-            Node* sortedList = sortListCopyByField(lists[idx], "transport");
-            linearSearchByTransport_Sorted(sortedList, mode, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED LINEAR] " + label, names[idx]);
-            freeList(sortedHead);
-            freeList(sortedList);
-
-        } else if(choice == 3) {
-            //search by daily distance
-            cout << "\nOperator (>, <, =): ";
-            char op;
-            cin >> op;
-            if(op != '>' && op != '<' && op != '=') {
-                cout << "Invalid operator. Default to >" << endl;
-                op = '>';
-            }
-            cout << "Enter distance threshold: ";
-            int threshold;
-            cin >> threshold;
-            stringstream ss;
-            ss << threshold;
-            label = "Distance ";
-            label += op;
-            label += " " + ss.str();
-
-            linearSearchByDistance(lists[idx], threshold, op, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED LINEAR] " + label, names[idx]);
-            freeList(unsortedHead);
-
-            Node* sortedList = sortListCopyByField(lists[idx], "distance");
-            linearSearchByDistance_Sorted(sortedList, threshold, op, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED LINEAR] " + label, names[idx]);
-            freeList(sortedHead);
-            freeList(sortedList);
-
+    if(ageGroup >= 1 && ageGroup <= 5){
+        //age filter is active, sort by age, so early exit runs if age exceeds max
+        sortedList = sortListCopyByField(searchList, "age");
+        linearSortedList = true;
+    }else if(!targetMode.empty()){
+        //transport filter is active (age skipped), sort by transport, so early exit runs if current mode passes the target alphabetically
+        sortedList = sortListCopyByField(searchList, "transport");
+        linearSortedList = true;
+    }else if(distOp == '>' || distOp == '<' || distOp == '='){
+        //distance filter is active (age & transport skipped), sort by distance, so early exit runs if distance exceeds threshold
+        sortedList = sortListCopyByField(searchList, "distance");
+        linearSortedList = true;
         }
 
-    } while(choice != 4);
+    //if no filter was active, original list is printed
+    if(!linearSortedList){
+        sortedList = searchList;
+    }
+
+    //run sorted linear searh on sorted copy
+    //all active filters are checked regardless of which field was used for sorting
+    linearSearchCombined_Sorted(sortedList, ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+    printSearchResults(matchedHead, matchCount, "[SORTED LINEAR] " + label, datasetName);
+    freeList(matchedHead);
+    
+    //free sorted copy if it was created
+    if(linearSortedList){
+        freeList(sortedList);
+    }
+    //free combined list if it was created during merging all cities
+    if(cityChoice == 4){
+        freeList(searchList);
+    }
 }
 
 //sub-menu for binary search
@@ -1960,27 +1954,76 @@ void binarySearchMenu(Node* cityA, Node* cityB, Node* cityC) {
 
     int choice;
     do {
+        //city selection
+        printSeparator(57, '-');
+        cout << "Binary Search" << endl;
+        cout << "\nDataset:" << endl;
+        cout << "1. City A" << endl;
+        cout << "2. City B" << endl;
+        cout << "3. City C" << endl;
+        cout << "4. All Cities (Combined)" << endl;
+        cout << "5. Back" << endl;
+        printSeparator(57, '-');
+        cout << "Select dataset: ";
+        int cityChoice;
+        cin >> cityChoice;
+
+        if(cityChoice == 5) {
+            cout << endl;
+            return; //go back to searching menu
+        }
+        if(cityChoice < 1 || cityChoice > 4) {
+            cout << "Invalid choice. Default to City A" << endl;
+            cityChoice = 1;
+        }
+
+        Node* searchList = NULL;
+        string datasetName; //stores the name of selected dataset for display
+
+        if(cityChoice == 4) {
+            //merge all 3 cities into 1 combined list
+            datasetName = "All Cities";
+            for(int l = 0; l < 3; l++) {
+                Node* cur = lists[l];
+                while(cur != NULL) {
+                    insert(searchList, cur->data); //copy each resident into combined list
+                    cur = cur->next;
+                }
+            }
+        
+        }else{
+            //point directly to the selected city's list (no need to copy)
+            searchList = lists[cityChoice-1];
+            datasetName = names[cityChoice-1];
+        }
+
+        //category selection
         printSeparator(57, '-');
         cout << "Binary Search" << endl;
         cout << "\n1. Search by age group" << endl;
         cout << "2. Search by mode of transport" << endl;
-        cout << "3. Search by daily distance (exact match)" << endl;
+        cout << "3. Search by daily distance" << endl;
         cout << "4. Back" << endl;
         printSeparator(57, '-');
         cout << "Select search type: ";
         cin >> choice;
 
         if(choice == 4) {
+            if(cityChoice == 4){
+                freeList(searchList); //free combined list before going back to dataset selection
+            }
             cout << endl;
             break;
         }
         if(choice < 1 || choice > 3) {
+            if(cityChoice == 4){
+                freeList(searchList); //free combined list before breaking out of loop
+            }
             cout << "Invalid choice. Please try again" << endl;
             continue;
         }
 
-        int idx = selectCity(); //ask user which city to search
-
+        //unsorted and sorted head holds the search results for unsorted and sorted search respectively
         Node* unsortedHead = NULL, *sortedHead = NULL;
         int unsortedCount = 0, sortedCount = 0;
         string label;
@@ -2010,12 +2053,14 @@ void binarySearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             }
             label = "Age Group = " + getAgeGroupLabel(grp - 1);
 
-            binarySearchByAgeGroup_Unsorted(lists[idx], minAge, maxAge, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY] " + label, names[idx]);
+            //binary search on unsorted list
+            binarySearchByAgeGroup_Unsorted(searchList, minAge, maxAge, unsortedHead, unsortedCount);
+            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY] " + label, datasetName);
             freeList(unsortedHead);
 
-            binarySearchByAgeGroup(lists[idx], minAge, maxAge, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY] " + label, names[idx]);
+            //converts list to array, sorts it, and then runs binary search
+            binarySearchByAgeGroup_Sorted(searchList, minAge, maxAge, sortedHead, sortedCount);
+            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY] " + label, datasetName);
             freeList(sortedHead);
 
         } else if(choice == 2) {
@@ -2026,12 +2071,14 @@ void binarySearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             getline(cin, mode);
             label = "Mode = " + mode;
 
-            binarySearchByTransport_Unsorted(lists[idx], mode, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY] " + label, names[idx]);
+            //binary search on unsorted list
+            binarySearchByTransport_Unsorted(searchList, mode, unsortedHead, unsortedCount);
+            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY] " + label, datasetName);
             freeList(unsortedHead);
 
-            binarySearchByTransport(lists[idx], mode, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY] " + label, names[idx]);
+            //converts list to array, sorts it, and then runs binary search
+            binarySearchByTransport_Sorted(searchList, mode, sortedHead, sortedCount);
+            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY] " + label, datasetName);
             freeList(sortedHead);
 
         } else if(choice == 3) {
@@ -2043,16 +2090,22 @@ void binarySearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             ss << target;
             label = "Distance = " + ss.str();
 
-            binarySearchByDistance_Unsorted(lists[idx], target, unsortedHead, unsortedCount);
-            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY] " + label, names[idx]);
+            //binary search on unsorted list
+            binarySearchByDistance_Unsorted(searchList, target, unsortedHead, unsortedCount);
+            printSearchResults(unsortedHead, unsortedCount, "[UNSORTED BINARY] " + label, datasetName);
             freeList(unsortedHead);
 
-            binarySearchByDistance(lists[idx], target, sortedHead, sortedCount);
-            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY] " + label, names[idx]);
+            //converts list to array, sorts it, and then runs binary search
+            binarySearchByDistance_Sorted(searchList, target, sortedHead, sortedCount);
+            printSearchResults(sortedHead, sortedCount, "[SORTED BINARY] " + label, datasetName);
             freeList(sortedHead);
         }
+        //free combined list after searching is done, if all cities is selected
+        if(cityChoice == 4){
+            freeList(searchList);
+        }
 
-    } while(choice != 4);
+    }while(choice != 4);
 }
 
 //sub-menu for BFS search
@@ -2197,34 +2250,41 @@ void dfsSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
     freeList(matchedHead); //free the results list after displaying
 }
 
+
+//A* SEARCH
 //one entry in the A* open list (min-heap)
 struct AStarNode {
-    float f;        //total priority score: f = g + h (heap ordered by this)
-    float g;        //number of search criteria this resident fails (0 = perfect)
-    float h;        //heuristic nudge: 0 if perfect match, 0.1 otherwise
-    Resident data;  //full copy of the resident's data
+    float f;//total priority score: f = g + h (heap ordered by this)
+    float g;//number of search criteria this resident fails
+    float h;//heuristic nudge: 0 if perfect match, 0.1 otherwise
+    Resident data;//full copy of the resident's data
 };
 
-//dynamic min-heap ordered by f-score 
+//min-heap: data structure where the smallest value is always at the top
 struct MinHeap {
-    AStarNode* arr; //dynamic array storing heap nodes
-    int size;       //current number of nodes in the heap
-    int capacity;   //maximum nodes the heap can hold
+    AStarNode* arr;//dynamic array storing heap nodes
+    int size;//current number of nodes in the heap
+    int capacity;//maximum nodes the heap can hold
 
+    //creates a dynamic array with size cap
     MinHeap(int cap) : size(0), capacity(cap) {
         arr = new AStarNode[cap];
     }
-    ~MinHeap() { delete[] arr; }
+    ~MinHeap() { delete[] arr; }//frees the heap memory when the heap is destroyed
 
-    void swapNodes(int i, int j) {
-        AStarNode tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp;
+    void swapNodes(int i, int j) { //swaps two heap elements
+        AStarNode tmp = arr[i]; 
+        arr[i] = arr[j]; 
+        arr[j] = tmp;
     }
 
     //bubble new node upward until heap property (parent.f <= child.f) is restored
     void heapifyUp(int i) {
         while(i > 0) {
             int parent = (i - 1) / 2;
-            if(arr[parent].f > arr[i].f) { swapNodes(parent, i); i = parent; }
+            if(arr[parent].f > arr[i].f) {
+                 swapNodes(parent, i); i = parent; 
+                }
             else break;
         }
     }
@@ -2235,14 +2295,15 @@ struct MinHeap {
             int smallest = i;
             int l = 2 * i + 1; //left child
             int r = 2 * i + 2; //right child
+            //compares the current node with its children
             if(l < size && arr[l].f < arr[smallest].f) smallest = l;
             if(r < size && arr[r].f < arr[smallest].f) smallest = r;
-            if(smallest == i) break;
+            if(smallest == i) break; 
             swapNodes(i, smallest); i = smallest;
         }
     }
 
-    //add a new node; place at end then bubble up
+    //add a new node (resident) to heap
     void push(const AStarNode& node) {
         if(size < capacity) { arr[size++] = node; heapifyUp(size - 1); }
     }
@@ -2258,14 +2319,14 @@ struct MinHeap {
     bool empty() const { return size == 0; }
 };
 
-//count nodes in a linked list — used to size the heap before pushing
+//count nodes in a linked list
 int countNodes(Node* head) {
     int n = 0;
     for(Node* c = head; c != NULL; c = c->next) n++;
     return n;
 }
 
-//compute g-cost: number of active criteria the resident FAILS (0 = perfect match)
+//compute g-cost: number of a resident fails
 float computeAStarG(const Resident& r,
                     bool filterAge,   int minAge,   int maxAge,
                     bool filterTrans, const string& targetLower,
@@ -2457,7 +2518,7 @@ void aStarSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
         cout << "Operator (>, <, =) or press Enter to skip: ";
         string opStr;
         getline(cin, opStr);
-        char distOp = '0'; //default: no distance filter
+        char distOp = '0';
         int  distThreshold = 0;
         if(!opStr.empty() && (opStr[0] == '>' || opStr[0] == '<' || opStr[0] == '=')) {
             distOp = opStr[0];
@@ -2466,27 +2527,23 @@ void aStarSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             cin.ignore();
         }
 
-        cout << "\nData order:" << endl;
-        cout << "1. Unsorted (A* on raw linked list)" << endl;
-        cout << "2. Sorted   (A* on age-sorted linked list)" << endl;
-        cout << "Select: ";
-        int orderChoice;
-        cin >> orderChoice;
-        if(orderChoice < 1 || orderChoice > 2) orderChoice = 1;
-        bool useSorted = (orderChoice == 2);
-
-        string label = useSorted ? "A* (Sorted)" : "A* (Unsorted)";
+        //build the criteria portion of the label (shared by both variants)
+        string criteria = "";
         if(ageGroup >= 1 && ageGroup <= 5)
-            label += " | Age = " + getAgeGroupLabel(ageGroup - 1);
-        if(!transport.empty())
-            label += " | Mode = " + transport;
+            criteria += "Age = " + getAgeGroupLabel(ageGroup - 1);
+        if(!transport.empty()) {
+            if(!criteria.empty()) criteria += " | ";
+            criteria += "Mode = " + transport;
+        }
         if(distOp == '>' || distOp == '<' || distOp == '=') {
+            if(!criteria.empty()) criteria += " | ";
             stringstream ss;
             ss << distThreshold;
-            label += " | Distance ";
-            label += distOp;
-            label += " " + ss.str();
+            criteria += "Distance ";
+            criteria += distOp;
+            criteria += " " + ss.str();
         }
+        if(criteria.empty()) criteria = "No filter";
 
         cout << endl;
 
@@ -2494,30 +2551,39 @@ void aStarSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
         int end   = (choice == 4) ? 2 : choice - 1;
 
         for(int i = start; i <= end; i++) {
+            //UNSORTED A* first
             Node* matchedHead = NULL;
             int   matchCount  = 0;
 
-            //start timer just before the A* search
             auto timeStart = chrono::high_resolution_clock::now();
-
-            if(useSorted) {
-                aStarSearchSorted(lists[i], ageGroup, transport,
-                                  distThreshold, distOp,
-                                  matchedHead, matchCount);
-            } else {
-                aStarSearchUnsorted(lists[i], ageGroup, transport,
-                                    distThreshold, distOp,
-                                    matchedHead, matchCount);
-            }
-
-            //stop timer and compute elapsed time
+            aStarSearchUnsorted(lists[i], ageGroup, transport,
+                                distThreshold, distOp,
+                                matchedHead, matchCount);
             auto timeEnd = chrono::high_resolution_clock::now();
             double elapsedMs = chrono::duration<double, milli>(timeEnd - timeStart).count();
             long memKB = ((long)matchCount * (long)sizeof(Node)) / 1024;
 
-            printSearchResults(matchedHead, matchCount, label, names[i]);
-            printPerformance(elapsedMs, memKB); //print timing and memory after results
-            freeList(matchedHead); //release the results linked list after printing
+            printSearchResults(matchedHead, matchCount,
+                               "[UNSORTED A*] " + criteria, names[i]);
+            printPerformance(elapsedMs, memKB);
+            freeList(matchedHead);
+
+            //SORTED A*
+            matchedHead = NULL;
+            matchCount  = 0;
+
+            timeStart = chrono::high_resolution_clock::now();
+            aStarSearchSorted(lists[i], ageGroup, transport,
+                              distThreshold, distOp,
+                              matchedHead, matchCount);
+            timeEnd = chrono::high_resolution_clock::now();
+            elapsedMs = chrono::duration<double, milli>(timeEnd - timeStart).count();
+            memKB = ((long)matchCount * (long)sizeof(Node)) / 1024;
+
+            printSearchResults(matchedHead, matchCount,
+                               "[SORTED A*] " + criteria, names[i]);
+            printPerformance(elapsedMs, memKB);
+            freeList(matchedHead);
         }
 
     } while(choice != 5);
