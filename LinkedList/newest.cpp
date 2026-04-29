@@ -2105,7 +2105,7 @@ void binarySearchMenu(Node* cityA, Node* cityB, Node* cityC) {
             freeList(searchList);
         }
 
-    }while(choice != 4);
+    } while(choice != 4);
 }
 
 //sub-menu for BFS search
