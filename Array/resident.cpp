@@ -8,7 +8,22 @@ resident::resident(string id, int ageInput, string transport, float distance, fl
       transportMode(transport),
       dailyDistance(distance),
       carbonEmissionFactor(carbonEmission),
-      averageDayPerMonth(averageDay) {}
+      averageDayPerMonth(averageDay) {
+        ageGroup = "Not set yet";
+        if(transport=="Car"){
+            encodedTransport = 0;
+        } else if (transport=="Bus"){
+            encodedTransport = 1;
+        } else if (transport=="Bicycle"){
+            encodedTransport = 2;
+        } else if (transport=="Walking"){
+            encodedTransport = 3;
+        } else if (transport=="School Bus"){
+            encodedTransport = 4;
+        } else{
+            encodedTransport = 5;
+        }
+      }
 
 string resident::getID(){
     return residentID;
@@ -16,6 +31,10 @@ string resident::getID(){
 
 int resident::getAge(){
     return age;
+}
+
+int resident::getTransportEncode(){
+    return encodedTransport;
 }
 
 string resident::getTransport(){
@@ -40,8 +59,12 @@ string resident::getAgeGroup(){
 
 //Setter Methods
 void setAge();
-void setTransport();
-void setDistance();
+void resident::setTransport(string transport){
+    transportMode = transport;
+}
+void resident::setDistance(float distance){
+    dailyDistance = distance;
+};
 void setCarbonEmission();
 void setAverageDay();
 
@@ -73,4 +96,8 @@ void resident::setAgeGroup(int &senior, int &late, int &early, int &university, 
 
 void resident::setAgeGroup(string ageGroup){
     this->ageGroup = ageGroup;
+}
+
+void resident::setTransportEncode(int encode){
+    encodedTransport = encode;
 }
