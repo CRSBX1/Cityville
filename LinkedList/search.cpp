@@ -748,8 +748,8 @@ string indent(int level) {
     return s;
 }
 
-//BFS search (unsorted)
-//BFS traversal over the transport tree
+//BFS SEARCH (UNSORTED)
+//BFS traversal over the transport tree built from the raw unsorted list
 void bfsSearchUnsorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
     matchedHead = NULL;
     matchCount = 0;
@@ -761,15 +761,32 @@ void bfsSearchUnsorted(Node* head, const string& rootLabel, int ageGroup, const 
     initTreeQueue(q);
     enqueueTree(q, root);
 
+    while(!isTreeQueueEmpty(q)) {
+        TreeNode* current = dequeueTree(q);
+
+        Node* resCur = current->residentsHead;
+        while(resCur != NULL) {
+            if(passesFilters(resCur->data, ageGroup, targetLower, distThreshold, distOp)) {
+                insert(matchedHead, resCur->data);
+                matchCount++;
+            }
+            resCur = resCur->next;
+        }
+
+        for(int i = 0; i < current->childCount; i++) {
+            enqueueTree(q, current->children[i]);
+        }
+    }
     freeTree(root);
 }
 
-//BFS search (sorted)
-void bfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, 
-                     int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
+//BFS SEARCH (SORTED)
+//copies the list, sorts the copy by age ascending, then builds the tree and does BFS
+void bfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
     matchedHead = NULL;
     matchCount = 0;
 
+    //copy and sort the list by age ascending (same approach as A* sorted)
     Node* sortedList = copyList(head);
     if(sortedList == NULL) return;
     bubbleSort(sortedList, sort_age, sort_asc);
@@ -783,6 +800,7 @@ void bfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const st
 
     while(!isTreeQueueEmpty(q)) {
         TreeNode* current = dequeueTree(q);
+
         Node* resCur = current->residentsHead;
         while(resCur != NULL) {
             if(passesFilters(resCur->data, ageGroup, targetLower, distThreshold, distOp)) {
@@ -791,44 +809,36 @@ void bfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const st
             }
             resCur = resCur->next;
         }
+
         for(int i = 0; i < current->childCount; i++) {
             enqueueTree(q, current->children[i]);
         }
     }
     freeTree(root);
+
+    //free the temporary sorted copy
     freeList(sortedList);
 }
 
+//DFS SEARCH
 //DFS recursive helper
 void dfsTreeHelper(TreeNode* current, int ageGroup, const string& targetLower, int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
-    if(!firstFound) {
-        cout << indent(current->level) << step << ". [L" << current->level << "] " << current->label;
-        if(current->residentCount > 0) cout << " (" << current->residentCount << " residents)";
-        if(current->childCount > 0) cout << " [" << current->childCount << " children]";
-        cout << endl;
-    }
-    step++;
-
     Node* resCur = current->residentsHead;
     while(resCur != NULL) {
         if(passesFilters(resCur->data, ageGroup, targetLower, distThreshold, distOp)) {
             insert(matchedHead, resCur->data);
             matchCount++;
-            if(!firstFound) {
-                cout << indent(current->level) << "   >> First match found at step " << (step - 1) << endl;
-                firstFound = true;
-            }
         }
         resCur = resCur->next;
     }
 
     for(int i = 0; i < current->childCount; i++) {
-        dfsTreeHelper(current->children[i], ageGroup, targetLower, distThreshold, distOp, matchedHead, matchCount, step, firstFound);
+        dfsTreeHelper(current->children[i], ageGroup, targetLower, distThreshold, distOp, matchedHead, matchCount);
     }
 }
 
-//DFS search (unsorted)
-//DFS traversal over the transport tree
+//DFS SEARCH (UNSORTED)
+//DFS traversal over the transport tree built from the raw unsorted list
 void dfsSearchUnsorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
     matchedHead = NULL;
     matchCount = 0;
@@ -836,16 +846,17 @@ void dfsSearchUnsorted(Node* head, const string& rootLabel, int ageGroup, const 
     TreeNode* root = buildTransportTree(head, rootLabel);
     string targetLower = toLower(targetMode);
 
-    dfsTreeHelper(root, ageGroup, targetLower, distThreshold, distOp, matchedHead, matchCount, step, firstFound);
+    dfsTreeHelper(root, ageGroup, targetLower, distThreshold, distOp, matchedHead, matchCount);
     freeTree(root);
 }
 
-//DFS search (sorted)
-void dfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, 
-                     int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
+//DFS SEARCH (SORTED)
+//copies the list, sorts the copy by age ascending, then builds the tree and does DFS
+void dfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
     matchedHead = NULL;
     matchCount = 0;
 
+    //copy and sort the list by age ascending (same approach as A* sorted)
     Node* sortedList = copyList(head);
     if(sortedList == NULL) return;
     bubbleSort(sortedList, sort_age, sort_asc);
@@ -855,6 +866,7 @@ void dfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const st
 
     dfsTreeHelper(root, ageGroup, targetLower, distThreshold, distOp, matchedHead, matchCount);
     freeTree(root);
+
+    //free the temporary sorted copy
     freeList(sortedList);
 }
-
