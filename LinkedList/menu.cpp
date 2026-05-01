@@ -772,8 +772,8 @@ void searchingMenu(Node* cityA, Node* cityB, Node* cityC) {
         cout << "Searching Experiments" << endl;
         cout << "\n1. Linear Search" << endl;
         cout << "2. Binary Search" << endl;
-        cout << "3. BFS Tree Search" << endl;
-        cout << "4. DFS Tree Search" << endl;
+        cout << "3. Breadth-First Search" << endl;
+        cout << "4. Depth-First Search" << endl;
         cout << "5. A* Search" << endl;
         cout << "6. Back to main menu" << endl;
         printSeparator(57, '-');
