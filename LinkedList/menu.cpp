@@ -83,7 +83,7 @@ void mainMenu(Node* cityA, Node* cityB, Node* cityC) {
         cout << "2. View categorized data per city\n";
         cout << "3. View categorized data across all cities\n";
         cout << "4. View emissions per mode of transport\n";
-        cout << "5. View emissions per age group comparison\n";
+        cout << "5. View emissions & preferred transport per age group\n";
         cout << "6. View emissions by transport mode across all cities\n";
         cout << "7. View cross-city comparison\n";
         cout << "8. Sorting experiments\n";
@@ -590,24 +590,53 @@ void bfsSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
                 cur = cur->next;
             }
         }
+
+        //--- UNSORTED BFS ---
         MemoryMetrics::reset();
         auto timer = startTimer();
-        bfsSearch(combined, "All Cities", ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+        bfsSearchUnsorted(combined, "All Cities", ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
         double elapsedMs = stopTimer(timer);
         size_t memUsed = MemoryMetrics::trackMemoryUsage();
         string label = buildSearchLabel("BFS", ageGroup, targetMode, distThreshold, distOp);
-        printSearchResults(matchedHead, matchCount, label, "All Cities");
+        printSearchResults(matchedHead, matchCount, "[UNSORTED BFS] " + label, "All Cities");
         printPerformance(elapsedMs, memUsed);
+        freeList(matchedHead);
+        matchedHead = NULL;
+        matchCount = 0;
+
+        //--- SORTED BFS ---
+        MemoryMetrics::reset();
+        timer = startTimer();
+        bfsSearchSorted(combined, "All Cities", ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+        elapsedMs = stopTimer(timer);
+        memUsed = MemoryMetrics::trackMemoryUsage();
+        printSearchResults(matchedHead, matchCount, "[SORTED BFS] " + label, "All Cities");
+        printPerformance(elapsedMs, memUsed);
+
         freeList(combined); //free the combined list after searching
     } else {
         int idx = cityChoice - 1; //convert to 0-based index
+
+        //--- UNSORTED BFS ---
         MemoryMetrics::reset();
         auto timer = startTimer();
-        bfsSearch(lists[idx], names[idx], ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+        bfsSearchUnsorted(lists[idx], names[idx], ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
         double elapsedMs = stopTimer(timer);
         size_t memUsed = MemoryMetrics::trackMemoryUsage();
         string label = buildSearchLabel("BFS", ageGroup, targetMode, distThreshold, distOp);
-        printSearchResults(matchedHead, matchCount, label, names[idx]);
+        printSearchResults(matchedHead, matchCount, "[UNSORTED BFS] " + label, names[idx]);
+        printPerformance(elapsedMs, memUsed);
+        freeList(matchedHead);
+        matchedHead = NULL;
+        matchCount = 0;
+
+        //--- SORTED BFS ---
+        MemoryMetrics::reset();
+        timer = startTimer();
+        bfsSearchSorted(lists[idx], names[idx], ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+        elapsedMs = stopTimer(timer);
+        memUsed = MemoryMetrics::trackMemoryUsage();
+        printSearchResults(matchedHead, matchCount, "[SORTED BFS] " + label, names[idx]);
         printPerformance(elapsedMs, memUsed);
     }
 
@@ -661,24 +690,53 @@ void dfsSearchMenu(Node* cityA, Node* cityB, Node* cityC) {
                 cur = cur->next;
             }
         }
+
+        //--- UNSORTED DFS ---
         MemoryMetrics::reset();
         auto timer = startTimer();
-        dfsSearch(combined, "All Cities", ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+        dfsSearchUnsorted(combined, "All Cities", ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
         double elapsedMs = stopTimer(timer);
         size_t memUsed = MemoryMetrics::trackMemoryUsage();
         string label = buildSearchLabel("DFS", ageGroup, targetMode, distThreshold, distOp);
-        printSearchResults(matchedHead, matchCount, label, "All Cities");
+        printSearchResults(matchedHead, matchCount, "[UNSORTED DFS] " + label, "All Cities");
         printPerformance(elapsedMs, memUsed);
+        freeList(matchedHead);
+        matchedHead = NULL;
+        matchCount = 0;
+
+        //--- SORTED DFS ---
+        MemoryMetrics::reset();
+        timer = startTimer();
+        dfsSearchSorted(combined, "All Cities", ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+        elapsedMs = stopTimer(timer);
+        memUsed = MemoryMetrics::trackMemoryUsage();
+        printSearchResults(matchedHead, matchCount, "[SORTED DFS] " + label, "All Cities");
+        printPerformance(elapsedMs, memUsed);
+
         freeList(combined); //free the combined list after searching
     } else {
         int idx = cityChoice - 1; //convert to 0-based index
+
+        //--- UNSORTED DFS ---
         MemoryMetrics::reset();
         auto timer = startTimer();
-        dfsSearch(lists[idx], names[idx], ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+        dfsSearchUnsorted(lists[idx], names[idx], ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
         double elapsedMs = stopTimer(timer);
         size_t memUsed = MemoryMetrics::trackMemoryUsage();
         string label = buildSearchLabel("DFS", ageGroup, targetMode, distThreshold, distOp);
-        printSearchResults(matchedHead, matchCount, label, names[idx]);
+        printSearchResults(matchedHead, matchCount, "[UNSORTED DFS] " + label, names[idx]);
+        printPerformance(elapsedMs, memUsed);
+        freeList(matchedHead);
+        matchedHead = NULL;
+        matchCount = 0;
+
+        //--- SORTED DFS ---
+        MemoryMetrics::reset();
+        timer = startTimer();
+        dfsSearchSorted(lists[idx], names[idx], ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+        elapsedMs = stopTimer(timer);
+        memUsed = MemoryMetrics::trackMemoryUsage();
+        printSearchResults(matchedHead, matchCount, "[SORTED DFS] " + label, names[idx]);
         printPerformance(elapsedMs, memUsed);
     }
 
