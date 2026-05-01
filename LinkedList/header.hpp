@@ -209,9 +209,11 @@ bool isTreeQueueEmpty(const TreeQueue& q);
 void enqueueTree(TreeQueue& q, TreeNode* node);
 TreeNode* dequeueTree(TreeQueue& q);
 string indent(int level);
-void bfsSearch(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount);
-void dfsTreeHelper(TreeNode* current, int ageGroup, const string& targetLower, int distThreshold, char distOp, Node*& matchedHead, int& matchCount, int& step, bool& firstFound);
-void dfsSearch(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount);
+void bfsSearchUnsorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount);
+void bfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount);
+void dfsTreeHelper(TreeNode* current, int ageGroup, const string& targetLower, int distThreshold, char distOp, Node*& matchedHead, int& matchCount);
+void dfsSearchUnsorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount);
+void dfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount);
 
 //menu.cpp
 void mainMenu(Node* cityA, Node* cityB, Node* cityC);
