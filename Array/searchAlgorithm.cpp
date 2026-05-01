@@ -929,7 +929,7 @@ void searchAlgorithm::printFinalResult(string algoName, string datasetName, stri
         }
     };
 
-    string sep2(50,'-');
+    string sep2(100,'-');
     cout << sep << endl;
     cout << "Search Algorithm Results:" << endl;
     cout << "Algorithm name: " << algoName << endl;

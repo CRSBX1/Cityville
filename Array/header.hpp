@@ -7,6 +7,13 @@
 #include <iostream>
 using namespace std;
 
+struct MemoryMetrics{
+    static size_t allocatedMemory;
+    static size_t freedMemory;
+    size_t trackMemoryUsage();
+    void reset();
+};
+
 enum SortKey
 {
     BY_AGE,
@@ -58,6 +65,10 @@ class resident{
 };
 
 class sortAlgorithm{
+    private:
+        MemoryMetrics memTracker; //memory tracker
+        size_t before, after, usedMemory, peakMemory; //memory usage variables
+
     public:
         bool compareLess(resident a, resident b, enum SortKey key);
         void copyArray(const resident src[], resident dst[], int size);
@@ -74,12 +85,7 @@ class sortAlgorithm{
                        resident dataset3[], int size3);
 };
 
-struct MemoryMetrics{
-    static size_t allocatedMemory;
-    static size_t freedMemory;
-    size_t trackMemoryUsage();
-    void reset();
-};
+
 
 class searchAlgorithm{
     private:
@@ -92,7 +98,7 @@ class searchAlgorithm{
         int searchKey;
         string ageGroup;
         string transport;
-        string sep = string(50,'=');
+        string sep = string(100,'=');
         float dailyDistance;
         float exTimeAlgo;
         resident** allDatasets = new resident*[3];
@@ -176,7 +182,7 @@ class dataOperations{
             int& bicycleCount, int& walkCount, int& schoolBusCount, int& poolCount, int size);
         void favoriteTransportMode(string ageGroup, int carCount, int busCount,
             int bicycleCount, int walkCount, int schoolBusCount, int poolCount);
-        void totalCarbonEmission(resident array[], string datasetName, int size);
+        void totalCarbonEmission(resident* array[], int size1, int size2, int size3);
         void displayTotalEmission(string datasetName, float totalEmission, float
             seniorEmission, float lateEmission, float earlyEmission, float universityEmission, float childEmission);
         void averageCarbonEmissionPerResident(resident array[], float seniorEmission, float lateEmission,
@@ -185,12 +191,18 @@ class dataOperations{
         void displayAgeGroupData();
         void displayData(resident array[], int size);
         void carbonEmissionPerTransportMode(resident array[], string datasetName, int size);
-        void emissionComparison(resident array[], string ageGroup, int size);
+        void emissionComparison(resident array[], string ageGroup, int size, string datasetName);
         void displayEmissionComparison(int carCount, int busCount, int bicycleCount,
             int walkCount, int schoolBusCount, int poolCount, float totalEmission, float carEmission,
             float busEmission, float bicycleEmission, float walkEmission, float schoolEmission, float poolEmission,
             float avgCarEmission, float avgBusEmission, float avgBicycleEmission, float avgWalkEmission, float avgSchoolEmission,
-            float avgPoolEmission, string ageGroup);
+            float avgPoolEmission, string ageGroup, string datasetName);
+        //setters for age group counts
+        void setSeniorCount(int count);
+        void setLateCount(int count);
+        void setEarlyCount(int count);
+        void setUniversityCount(int count);
+        void setChildCount(int count);
 };
 
 #endif

@@ -98,6 +98,7 @@ void sortAlgorithm::insertionSort(resident arr[], int size, SortKey key)
         }
         arr[j + 1] = key_elem; // Insert element at correct position
     }
+    peakMemory = memTracker.trackMemoryUsage() - before;
 }
 
 // ============================================================
@@ -142,6 +143,7 @@ void sortAlgorithm::quickSort(resident arr[], int low, int high, SortKey key)
         quickSort(arr, low, pivotIndex - 1, key);  // Sort left side
         quickSort(arr, pivotIndex + 1, high, key); // Sort right side
     }
+    peakMemory = memTracker.trackMemoryUsage() - before;
 }
 
 // ============================================================
@@ -157,7 +159,7 @@ void sortAlgorithm::printSortedTable(resident arr[], int size, SortKey key,
     cout << "  " << left
          << setw(10) << "ID"
          << setw(6) << "Age"
-         << setw(16) << "Age Group"
+         << setw(35) << "Age Group"
          << setw(14) << "Transport"
          << setw(16) << "Distance (km)"
          << setw(18) << "Emission Factor"
@@ -171,7 +173,7 @@ void sortAlgorithm::printSortedTable(resident arr[], int size, SortKey key,
         cout << "  " << left
              << setw(10) << arr[i].getID()
              << setw(6) << arr[i].getAge()
-             << setw(16) << arr[i].getAgeGroup().substr(0, 15)
+             << setw(35) << arr[i].getAgeGroup()
              << setw(14) << arr[i].getTransport()
              << setw(16) << fixed << setprecision(2) << arr[i].getDistance()
              << setw(18) << arr[i].getCarbonEmission()
@@ -189,39 +191,42 @@ void sortAlgorithm::printPerformanceTable(double insTime[], double qsTime[],
                            const string cities[], int sizes[], SortKey key)
 {
     cout << "\n  Performance Comparison - Sorted by: " << getSortKeyLabel(key) << endl;
-    cout << "  " << string(86, '=') << endl;
+    cout << "  " << string(125, '=') << endl;
     cout << "  " << left
          << setw(20) << "Algorithm"
          << setw(12) << "Dataset"
          << setw(10) << "Size"
          << setw(24) << "Time (microseconds)"
-         << setw(16) << "Time Complexity"
-         << setw(16) << "Space Complexity" << endl;
-    cout << "  " << string(86, '-') << endl;
+         << setw(18) << "Memory (Before)"
+         << setw(20) << "Memory (Allocated)"
+         << setw(16) << "Memory (After)" << endl;
+    cout << "  " << string(125, '-') << endl;
 
     for (int d = 0; d < 3; d++)
     {
         cout << "  " << left
-             << setw(20) << (d == 0 ? "Insertion Sort" : "")
-             << setw(12) << cities[d]
-             << setw(10) << sizes[d]
-             << setw(24) << fixed << setprecision(3) << insTime[d]
-             << setw(16) << (d == 0 ? "O(n^2)/O(n)" : "")
-             << setw(16) << (d == 0 ? "O(1)" : "") << endl;
+            << setw(20) << (d == 0 ? "Insertion Sort" : "")
+            << setw(12) << cities[d]
+            << setw(10) << sizes[d]
+            << setw(24) << fixed << setprecision(3) << insTime[d]
+            << setw(18) << before
+            << setw(20) << peakMemory
+            << setw(16) << after << endl;
     }
-    cout << "  " << string(86, '-') << endl;
+    cout << "  " << string(125, '-') << endl;
 
     for (int d = 0; d < 3; d++)
     {
         cout << "  " << left
-             << setw(20) << (d == 0 ? "Quick Sort" : "")
-             << setw(12) << cities[d]
-             << setw(10) << sizes[d]
-             << setw(24) << fixed << setprecision(3) << qsTime[d]
-             << setw(16) << (d == 0 ? "O(n log n)" : "")
-             << setw(16) << (d == 0 ? "O(log n)" : "") << endl;
+            << setw(20) << (d == 0 ? "Quick Sort" : "")
+            << setw(12) << cities[d]
+            << setw(10) << sizes[d]
+            << setw(24) << fixed << setprecision(3) << qsTime[d]
+            << setw(18) << before
+            << setw(20) << peakMemory
+            << setw(16) << after << endl;
     }
-    cout << "  " << string(86, '=') << endl;
+    cout << "  " << string(125, '=') << endl << endl;
 }
 
 // ============================================================
@@ -232,15 +237,13 @@ void sortAlgorithm::runSortingSection(resident dataset1[], int size1,
                        resident dataset3[], int size3)
 {
     cout << "\n";
-    cout << "  ╔══════════════════════════════════════════════════════════╗" << endl;
-    cout << "  ║           SECTION 6 - SORTING EXPERIMENTS               ║" << endl;
-    cout << "  ╚══════════════════════════════════════════════════════════╝" << endl;
+    cout << "  SECTION 6 - SORTING EXPERIMENTS  " << endl;
 
     cout << "\n  Sort residents by:" << endl;
-    cout << "  [1] Age" << endl;
-    cout << "  [2] Daily Distance" << endl;
-    cout << "  [3] Total Carbon Emission" << endl;
-    cout << "  Enter choice (1-3): ";
+    cout << "1. Age" << endl;
+    cout << "2. Daily Distance" << endl;
+    cout << "3. Total Carbon Emission" << endl;
+    cout << "Enter choice (1-3): ";
 
     int choice;
     cin >> choice;
@@ -253,93 +256,116 @@ void sortAlgorithm::runSortingSection(resident dataset1[], int size1,
         key = BY_CARBON_EMISSION;
 
     // Working copies so originals are never modified
-    resident copy1[200], copy2[178], copy3[122];
+    resident* copy1 = new resident[200], *copy2 = new resident[178], *copy3 = new resident[122];
 
-    string cities[3] = {"City A", "City B", "City C"};
-    int sizes[3] = {size1, size2, size3};
+    string* cities = new string[3]{"City A", "City B", "City C"};
+    int* sizes = new int[3]{size1, size2, size3};
 
-    double insTime[3];
-    double qsTime[3];
+    double* insTime = new double[3];
+    double* qsTime = new double[3];
 
     // ----------------------------------------------------------
     //  INSERTION SORT on all 3 datasets
     // ----------------------------------------------------------
-    cout << "\n  ┌──────────────────────────────────────────────────────┐" << endl;
-    cout << "  │               INSERTION SORT RESULTS                 │" << endl;
-    cout << "  └──────────────────────────────────────────────────────┘" << endl;
+    cout << "\n" << endl;
+    cout << "  INSERTION SORT RESULTS  " << endl;
 
     copyArray(dataset1, copy1, size1);
+    before = memTracker.trackMemoryUsage();
     auto start = chrono::high_resolution_clock::now();
     insertionSort(copy1, size1, key);
     auto end = chrono::high_resolution_clock::now();
+    after = memTracker.trackMemoryUsage();
     insTime[0] = chrono::duration<double, micro>(end - start).count();
     printSortedTable(copy1, size1, key, "Insertion Sort", "City A");
-    cout << "  Execution Time: " << fixed << setprecision(3) << insTime[0] << " microseconds\n"
-         << endl;
+    cout << "  Execution Time: " << fixed << setprecision(3) << insTime[0] << " microseconds\n" << endl;
+    cout << "  Memory before sorting: " << before << " bytes" << endl;
+    cout << "  Memory allocated during sorting: " << peakMemory << " bytes" << endl;
+    cout << "  Memory after sorting: " << after << " bytes" << endl;
+    cout << "  Algorithm impact towards overall system memory usage: " << after-before << " bytes" << endl;
+
 
     copyArray(dataset2, copy2, size2);
+    before = memTracker.trackMemoryUsage();
     start = chrono::high_resolution_clock::now();
     insertionSort(copy2, size2, key);
     end = chrono::high_resolution_clock::now();
+    after = memTracker.trackMemoryUsage();
     insTime[1] = chrono::duration<double, micro>(end - start).count();
     printSortedTable(copy2, size2, key, "Insertion Sort", "City B");
     cout << "  Execution Time: " << fixed << setprecision(3) << insTime[1] << " microseconds\n"
          << endl;
+    cout << "  Memory before sorting: " << before << " bytes" << endl;
+    cout << "  Memory allocated during sorting: " << peakMemory << " bytes" << endl;
+    cout << "  Memory after sorting: " << after << " bytes" << endl;
+    cout << "  Algorithm impact towards overall system memory usage: " << after-before << " bytes" << endl;
 
     copyArray(dataset3, copy3, size3);
+    before = memTracker.trackMemoryUsage();
     start = chrono::high_resolution_clock::now();
     insertionSort(copy3, size3, key);
     end = chrono::high_resolution_clock::now();
+    after = memTracker.trackMemoryUsage();
     insTime[2] = chrono::duration<double, micro>(end - start).count();
     printSortedTable(copy3, size3, key, "Insertion Sort", "City C");
     cout << "  Execution Time: " << fixed << setprecision(3) << insTime[2] << " microseconds\n"
          << endl;
+    cout << "  Memory before sorting: " << before << " bytes" << endl;
+    cout << "  Memory allocated during sorting: " << peakMemory << " bytes" << endl;
+    cout << "  Memory after sorting: " << after << " bytes" << endl;
+    cout << "  Algorithm impact towards overall system memory usage: " << after-before << " bytes" << endl;
 
     // ----------------------------------------------------------
     //  QUICK SORT on all 3 datasets
     // ----------------------------------------------------------
-    cout << "\n  ┌──────────────────────────────────────────────────────┐" << endl;
-    cout << "  │                QUICK SORT RESULTS                    │" << endl;
-    cout << "  └──────────────────────────────────────────────────────┘" << endl;
+    cout << "\n" << endl;
+    cout << "  QUICK SORT RESULTS  " << endl;
 
     copyArray(dataset1, copy1, size1);
+    before = memTracker.trackMemoryUsage();
     start = chrono::high_resolution_clock::now();
     quickSort(copy1, 0, size1 - 1, key);
     end = chrono::high_resolution_clock::now();
+    after = memTracker.trackMemoryUsage();
     qsTime[0] = chrono::duration<double, micro>(end - start).count();
     printSortedTable(copy1, size1, key, "Quick Sort", "City A");
-    cout << "  Execution Time: " << fixed << setprecision(3) << qsTime[0] << " microseconds\n"
-         << endl;
+    cout << "  Execution Time: " << fixed << setprecision(3) << qsTime[0] << " microseconds\n" << endl;
+    cout << "  Memory before sorting: " << before << " bytes" << endl;
+    cout << "  Memory allocated during sorting: " << peakMemory << " bytes" << endl;
+    cout << "  Memory after sorting: " << after << " bytes" << endl;
+    cout << "  Algorithm impact towards overall system memory usage: " << after-before << " bytes" << endl;
 
     copyArray(dataset2, copy2, size2);
+    before = memTracker.trackMemoryUsage();
     start = chrono::high_resolution_clock::now();
     quickSort(copy2, 0, size2 - 1, key);
     end = chrono::high_resolution_clock::now();
+    after = memTracker.trackMemoryUsage();
     qsTime[1] = chrono::duration<double, micro>(end - start).count();
     printSortedTable(copy2, size2, key, "Quick Sort", "City B");
-    cout << "  Execution Time: " << fixed << setprecision(3) << qsTime[1] << " microseconds\n"
-         << endl;
+    cout << "  Execution Time: " << fixed << setprecision(3) << qsTime[1] << " microseconds\n" << endl;
+    cout << "  Memory before sorting: " << before << " bytes" << endl;
+    cout << "  Memory allocated during sorting: " << peakMemory << " bytes" << endl;
+    cout << "  Memory after sorting: " << after << " bytes" << endl;
+    cout << "  Algorithm impact towards overall system memory usage: " << after-before << " bytes" << endl;
 
     copyArray(dataset3, copy3, size3);
+    before = memTracker.trackMemoryUsage();
     start = chrono::high_resolution_clock::now();
     quickSort(copy3, 0, size3 - 1, key);
     end = chrono::high_resolution_clock::now();
+    after = memTracker.trackMemoryUsage();
     qsTime[2] = chrono::duration<double, micro>(end - start).count();
     printSortedTable(copy3, size3, key, "Quick Sort", "City C");
-    cout << "  Execution Time: " << fixed << setprecision(3) << qsTime[2] << " microseconds\n"
-         << endl;
+    cout << "  Execution Time: " << fixed << setprecision(3) << qsTime[2] << " microseconds\n" << endl;
+    cout << "  Memory before sorting: " << before << " bytes" << endl;
+    cout << "  Memory allocated during sorting: " << peakMemory << " bytes" << endl;
+    cout << "  Memory after sorting: " << after << " bytes" << endl;
+    cout << "  Algorithm impact towards overall system memory usage: " << after-before << " bytes" << endl;
+    cout << "  Execution Time: " << fixed << setprecision(3) << qsTime[2] << " microseconds\n" << endl;
 
     // ----------------------------------------------------------
     //  Performance Comparison Table
     // ----------------------------------------------------------
     printPerformanceTable(insTime, qsTime, cities, sizes, key);
-
-    cout << "\n  ANALYSIS:" << endl;
-    cout << "  - Insertion Sort: O(n^2) worst but O(n) best on nearly-sorted data." << endl;
-    cout << "    Uses O(1) extra memory - ideal for memory-constrained environments." << endl;
-    cout << "  - Quick Sort: O(n log n) average - faster on large random datasets." << endl;
-    cout << "    Uses O(log n) stack space due to recursion." << endl;
-    cout << "  - Arrays allow direct index access, making both algorithms efficient." << endl;
-    cout << "  - Quick Sort is the recommended choice for this dataset size." << endl;
-    cout << endl;
 }

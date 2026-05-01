@@ -1,6 +1,12 @@
 #include "header.hpp"
 using namespace std;
 
+void dataOperations::setSeniorCount(int count){ seniorCount = count; }
+void dataOperations::setLateCount(int count){ lateCount = count; }
+void dataOperations::setEarlyCount(int count){ earlyCount = count; }
+void dataOperations::setUniversityCount(int count){ universityCount = count; }
+void dataOperations::setChildCount(int count){ childCount = count; }
+
 resident* dataOperations::importDataset(string filename, resident dataset[], int size){
     ifstream fileData(filename);
     if (!fileData.is_open()){
@@ -59,7 +65,11 @@ void dataOperations::favoriteTransportMode(string ageGroup, int carCount, int bu
     if (walkCount > maxCount) maxCount = walkCount;
     if (schoolBusCount > maxCount) maxCount = schoolBusCount;
     if (poolCount > maxCount) maxCount = poolCount;
-    if (maxCount == carCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Car" << endl;
+    if (maxCount == 0) {
+        cout << "No transportation mode data available for " << ageGroup << "." << endl;
+        return;
+    }
+    else if (maxCount == carCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Car" << endl;
     else if (maxCount == busCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Bus" << endl;
     else if (maxCount == bicycleCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Bicycle" << endl;
     else if (maxCount == walkCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Walking" << endl;
@@ -67,18 +77,23 @@ void dataOperations::favoriteTransportMode(string ageGroup, int carCount, int bu
     else if (maxCount == poolCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Carpool" << endl;
 }
 
-void dataOperations::totalCarbonEmission(resident array[], string datasetName, int size){
-    float seniorEmission = 0, lateEmission = 0, earlyEmission = 0, universityEmission = 0, childEmission = 0, totalEmission = 0;
-    for(int i=0; i<size;i++){
-        totalEmission += array[i].getCarbonEmission();
-        if (array[i].getAgeGroup() == "Senior Citizens/Retirees") seniorEmission += array[i].getCarbonEmission();
-        else if (array[i].getAgeGroup() == "Working Adults (Late Career)") lateEmission += array[i].getCarbonEmission();
-        else if (array[i].getAgeGroup() == "Working Adults (Early Career)") earlyEmission += array[i].getCarbonEmission();
-        else if (array[i].getAgeGroup() == "University Students/Young Adults") universityEmission += array[i].getCarbonEmission();
-        else if (array[i].getAgeGroup() == "Children & Teenagers") childEmission += array[i].getCarbonEmission();
+void dataOperations::totalCarbonEmission(resident* array[], int size1, int size2, int size3){
+    string* datasetName = new string[]{"Dataset 1 - City A", "Dataset 2 - City B", "Dataset 3 - City C"}; 
+    int* size = new int[]{size1, size2, size3};
+    float seniorEmission, lateEmission, earlyEmission, universityEmission, childEmission, totalEmission;
+    for(int i=0; i<3;i++){
+        seniorEmission = 0, lateEmission = 0, earlyEmission = 0, universityEmission = 0, childEmission = 0, totalEmission = 0;
+        for(int j=0; j<size[i]; j++){
+            totalEmission += array[i][j].getCarbonEmission();
+            if (array[i][j].getAgeGroup() == "Senior Citizens/Retirees") seniorEmission += array[i][j].getCarbonEmission();
+            else if (array[i][j].getAgeGroup() == "Working Adults (Late Career)") lateEmission += array[i][j].getCarbonEmission();
+            else if (array[i][j].getAgeGroup() == "Working Adults (Early Career)") earlyEmission += array[i][j].getCarbonEmission();
+            else if (array[i][j].getAgeGroup() == "University Students/Young Adults") universityEmission += array[i][j].getCarbonEmission();
+            else if (array[i][j].getAgeGroup() == "Children & Teenagers") childEmission += array[i][j].getCarbonEmission();
+        }
+        displayTotalEmission(datasetName[i], totalEmission, seniorEmission, lateEmission, earlyEmission, universityEmission, childEmission);
+        averageCarbonEmissionPerResident(array[i], seniorEmission, lateEmission, earlyEmission, universityEmission, childEmission, totalEmission, size[i]);
     }
-    displayTotalEmission(datasetName, totalEmission, seniorEmission, lateEmission, earlyEmission, universityEmission, childEmission);
-    averageCarbonEmissionPerResident(array, seniorEmission, lateEmission, earlyEmission, universityEmission, childEmission, totalEmission, size);
 }
 
 void dataOperations::carbonEmissionPerTransportMode(resident array[], string datasetName, int size){
@@ -133,7 +148,9 @@ void dataOperations::carbonEmissionPerTransportMode(resident array[], string dat
 
 void dataOperations::displayTotalEmission(string datasetName, float totalEmission, float seniorEmission,
     float lateEmission, float earlyEmission, float universityEmission, float childEmission){
-    cout << "Carbon Emission: " << datasetName << endl;
+    cout << endl;
+    cout << "====================================================================================================" << endl;
+    cout << "Carbon Emission: " << datasetName << endl << endl;
     cout << "Total Carbon Emission: " << totalEmission << endl;
     cout << "Senior Citizens/Retirees: " << seniorEmission << endl;
     cout << "Working Adults (Late Career): " << lateEmission << endl;
@@ -158,7 +175,7 @@ void dataOperations::averageCarbonEmissionPerResident(resident array[], float se
     cout << "Children & Teenagers: " << childAverageEmission << endl;
 }
 
-void dataOperations::emissionComparison(resident array[], string ageGroup, int size){
+void dataOperations::emissionComparison(resident array[], string ageGroup, int size, string datasetName){
     int carCount = 0, busCount = 0, bicycleCount = 0, walkCount = 0, schoolBusCount = 0, poolCount = 0;
     float totalEmission = 0, carEmission = 0, busEmission = 0, bicycleEmission = 0, walkEmission = 0, schoolEmission = 0, poolEmission = 0;
     float avgCarEmission = 0, avgBusEmission = 0, avgBicycleEmission = 0, avgWalkEmission = 0, avgSchoolEmission = 0, avgPoolEmission = 0;
@@ -193,15 +210,16 @@ void dataOperations::emissionComparison(resident array[], string ageGroup, int s
     avgPoolEmission = poolEmission / poolCount;
     displayEmissionComparison(carCount, busCount, bicycleCount, walkCount, schoolBusCount, poolCount, totalEmission, carEmission,
         busEmission, bicycleEmission, walkEmission, schoolEmission, poolEmission, avgCarEmission, avgBusEmission,
-        avgBicycleEmission, avgWalkEmission, avgSchoolEmission, avgPoolEmission, ageGroup);
+        avgBicycleEmission, avgWalkEmission, avgSchoolEmission, avgPoolEmission, ageGroup, datasetName);
 }
 
 void dataOperations::displayEmissionComparison(int carCount, int busCount, int bicycleCount,
     int walkCount, int schoolBusCount, int poolCount, float totalEmission, float carEmission,
     float busEmission, float bicycleEmission, float walkEmission, float schoolEmission, float poolEmission,
     float avgCarEmission, float avgBusEmission, float avgBicycleEmission, float avgWalkEmission, float avgSchoolEmission,
-    float avgPoolEmission, string ageGroup){
+    float avgPoolEmission, string ageGroup, string datasetName){
     cout << endl;
+    cout << datasetName << endl;
     cout << "Emission Comparison: Transport Mode per Age Group (" << ageGroup << ")" << endl;
     cout << "---------------------------------------------------------------------------------------------" << endl;
     cout << left << setw(15) << "Mode"

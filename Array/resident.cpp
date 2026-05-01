@@ -69,23 +69,23 @@ void setCarbonEmission();
 void setAverageDay();
 
 void resident::setAgeGroup(int &senior, int &late, int &early, int &university, int &child){
-    if(getAge() <= 100 & getAge() > 60){
+    if(getAge() <= 100 && getAge() > 60){
         ageGroup = "Senior Citizens/Retirees";
         senior++;
     }
-    else if(getAge() <= 60 & getAge() > 45){
+    else if(getAge() <= 60 && getAge() > 45){
         ageGroup = "Working Adults (Late Career)";
         late++;
     }
-    else if(getAge() <= 45 & getAge() > 25){
+    else if(getAge() <= 45 && getAge() > 25){
         ageGroup = "Working Adults (Early Career)";
         early++;
     }
-    else if(getAge() <=25 & getAge() > 17){
+    else if(getAge() <= 25 && getAge() > 17){
         ageGroup = "University Students/Young Adults";
         university++;
     }
-    else if(getAge() <=17 & getAge() > 5){
+    else if(getAge() <= 17 && getAge() > 5){
         ageGroup = "Children & Teenagers";
         child++;
     }

@@ -23,6 +23,7 @@ class mainMenu{
         resident* dataset1 = new resident[200];
         resident* dataset2 = new resident[178];
         resident* dataset3 = new resident[122];
+        resident** datasetArr = new resident*[3]{dataset1, dataset2, dataset3};
         string menuChoice;
         string separator = string(100, '=') + "\n";
         dataOperations dataOps;
@@ -69,7 +70,12 @@ class mainMenu{
                 cout << "Dataset 3 - City C:" << endl;
                 dataOps.displayData(dataset3, datasetSize3);
             }
-            else if(userChoice == 2){                
+            else if(userChoice == 2){        
+                dataOps.setSeniorCount(0);
+                dataOps.setLateCount(0);
+                dataOps.setEarlyCount(0);
+                dataOps.setUniversityCount(0);
+                dataOps.setChildCount(0);        
                 dataOps.categorizeAgeGroup(dataset1, datasetSize1);
                 dataOps.categorizeAgeGroup(dataset2, datasetSize2);
                 dataOps.categorizeAgeGroup(dataset3, datasetSize3);
@@ -100,10 +106,10 @@ class mainMenu{
                     bicycleCount, walkCount, schoolBusCount, poolCount);
             }
             else if(userChoice == 4){
-                float seniorEmission = 0, lateEmission = 0, earlyEmission = 0, universityEmission = 0, childEmission = 0, totalEmission = 0;
-                dataOps.totalCarbonEmission(dataset1, "Dataset 1 - City A", datasetSize1);
-                dataOps.totalCarbonEmission(dataset2, "Dataset 2 - City B", datasetSize2);
-                dataOps.totalCarbonEmission(dataset3, "Dataset 3 - City C", datasetSize3);
+                dataOps.categorizeAgeGroup(dataset1, datasetSize1);
+                dataOps.categorizeAgeGroup(dataset2, datasetSize2);
+                dataOps.categorizeAgeGroup(dataset3, datasetSize3);
+                dataOps.totalCarbonEmission(datasetArr, 200, 178, 122);
             }
             else if(userChoice == 5){
                 float carEmission = 0, busEmission = 0, bicycleEmission = 0, walkEmission = 0, schoolBusEmission = 0, poolEmission = 0;
@@ -112,11 +118,21 @@ class mainMenu{
                 dataOps.carbonEmissionPerTransportMode(dataset3, "Dataset 3 - City C", datasetSize3);
             }
             else if(userChoice == 6){
-                dataOps.emissionComparison(dataset1, "Senior Citizens/Retirees", datasetSize1);
-                dataOps.emissionComparison(dataset1, "Working Adults (Late Career)", datasetSize1);
-                dataOps.emissionComparison(dataset1, "Working Adults (Early Career)", datasetSize1);
-                dataOps.emissionComparison(dataset1, "University Students/Young Adults", datasetSize1);
-                dataOps.emissionComparison(dataset1, "Children & Teenagers", datasetSize1);
+                dataOps.emissionComparison(dataset1, "Senior Citizens/Retirees", datasetSize1, "Dataset 1 - City A");
+                dataOps.emissionComparison(dataset1, "Working Adults (Late Career)", datasetSize1, "Dataset 1 - City A");
+                dataOps.emissionComparison(dataset1, "Working Adults (Early Career)", datasetSize1, "Dataset 1 - City A");
+                dataOps.emissionComparison(dataset1, "University Students/Young Adults", datasetSize1, "Dataset 1 - City A");
+                dataOps.emissionComparison(dataset1, "Children & Teenagers", datasetSize1, "Dataset 1 - City A");
+                dataOps.emissionComparison(dataset2, "Senior Citizens/Retirees", datasetSize2, "Dataset 2 - City B");
+                dataOps.emissionComparison(dataset2, "Working Adults (Late Career)", datasetSize2, "Dataset 2 - City B");
+                dataOps.emissionComparison(dataset2, "Working Adults (Early Career)", datasetSize2, "Dataset 2 - City B");
+                dataOps.emissionComparison(dataset2, "University Students/Young Adults", datasetSize2, "Dataset 2 - City B");
+                dataOps.emissionComparison(dataset2, "Children & Teenagers", datasetSize2, "Dataset 2 - City B");
+                dataOps.emissionComparison(dataset3, "Senior Citizens/Retirees", datasetSize3, "Dataset 3 - City C");
+                dataOps.emissionComparison(dataset3, "Working Adults (Late Career)", datasetSize3, "Dataset 3 - City C");
+                dataOps.emissionComparison(dataset3, "Working Adults (Early Career)", datasetSize3, "Dataset 3 - City C");
+                dataOps.emissionComparison(dataset3, "University Students/Young Adults", datasetSize3, "Dataset 3 - City C");
+                dataOps.emissionComparison(dataset3, "Children & Teenagers", datasetSize3, "Dataset 3 - City C");
             }
             else if(userChoice == 7){
                 sortAlgo.runSortingSection(dataset1, datasetSize1, dataset2, datasetSize2, dataset3, datasetSize3);
