@@ -6,16 +6,6 @@
 #include <chrono>
 #include <string>
 
-//Memory tracker
-
-double calculateResidentTotalEmission(resident r)
-{
-    return r.getDistance() * r.getCarbonEmission() * r.getAverageDay();
-}
-// ============================================================
-//  Sort Key Options – determines which field to sort by
-// ============================================================
-
 using namespace std;
 
 class mainMenu{
@@ -84,31 +74,45 @@ class mainMenu{
             }
             else if(userChoice == 3){
                 int carCount, busCount, bicycleCount, walkCount, schoolBusCount, poolCount;
-                dataOps.calculateTransportModeCount(dataset1, "Senior Citizens/Retirees",
-                    carCount, busCount, bicycleCount, walkCount, schoolBusCount, poolCount, datasetSize1);
-                dataOps.favoriteTransportMode("Senior Citizens/Retirees", carCount, busCount,
+                cout << endl << "Preferred Transportation Mode per Age Group (Dataset 1 - City A):" << endl;
+                dataOps.favoriteTransportMode(dataset1, datasetSize1, "Senior Citizens/Retirees", carCount, busCount,
                     bicycleCount, walkCount, schoolBusCount, poolCount);
-                dataOps.calculateTransportModeCount(dataset1, "Working Adults (Late Career)",
-                    carCount, busCount, bicycleCount, walkCount, schoolBusCount, poolCount, datasetSize1);
-                dataOps.favoriteTransportMode("Working Adults (Late Career)", carCount,
+                dataOps.favoriteTransportMode(dataset1, datasetSize1, "Working Adults (Late Career)", carCount,
                     busCount, bicycleCount, walkCount, schoolBusCount, poolCount);
-                dataOps.calculateTransportModeCount(dataset1, "Working Adults (Early Career)",
-                    carCount, busCount, bicycleCount, walkCount, schoolBusCount, poolCount, datasetSize1);
-                dataOps.favoriteTransportMode("Working Adults (Early Career)", carCount,
+                dataOps.favoriteTransportMode(dataset1, datasetSize1, "Working Adults (Early Career)", carCount,
                     busCount, bicycleCount, walkCount, schoolBusCount, poolCount);
-                dataOps.calculateTransportModeCount(dataset1, "University Students/Young Adults",
-                    carCount, busCount, bicycleCount, walkCount, schoolBusCount, poolCount, datasetSize1);
-                dataOps.favoriteTransportMode("University Students/Young Adults", carCount,
+                dataOps.favoriteTransportMode(dataset1, datasetSize1, "University Students/Young Adults", carCount,
                     busCount, bicycleCount, walkCount, schoolBusCount, poolCount);
-                dataOps.calculateTransportModeCount(dataset1, "Children & Teenagers", carCount,
-                    busCount, bicycleCount, walkCount, schoolBusCount, poolCount, datasetSize1);
-                dataOps.favoriteTransportMode("Children & Teenagers", carCount, busCount,
+                dataOps.favoriteTransportMode(dataset1, datasetSize1, "Children & Teenagers", carCount, busCount,
+                    bicycleCount, walkCount, schoolBusCount, poolCount);
+                cout << endl << "Preferred Transportation Mode per Age Group (Dataset 2 - City B):" << endl;
+                dataOps.favoriteTransportMode(dataset2, datasetSize2, "Senior Citizens/Retirees", carCount, busCount,
+                    bicycleCount, walkCount, schoolBusCount, poolCount);
+                dataOps.favoriteTransportMode(dataset2, datasetSize2, "Working Adults (Late Career)", carCount,
+                    busCount, bicycleCount, walkCount, schoolBusCount, poolCount);
+                dataOps.favoriteTransportMode(dataset2, datasetSize2, "Working Adults (Early Career)", carCount,
+                    busCount, bicycleCount, walkCount, schoolBusCount, poolCount);
+                dataOps.favoriteTransportMode(dataset2, datasetSize2, "University Students/Young Adults", carCount,
+                    busCount, bicycleCount, walkCount, schoolBusCount, poolCount);
+                dataOps.favoriteTransportMode(dataset2, datasetSize2, "Children & Teenagers", carCount, busCount,
+                    bicycleCount, walkCount, schoolBusCount, poolCount);
+                cout << endl << "Preferred Transportation Mode per Age Group (Dataset 3 - City C):" << endl;
+                dataOps.favoriteTransportMode(dataset3, datasetSize3, "Senior Citizens/Retirees", carCount, busCount,
+                    bicycleCount, walkCount, schoolBusCount, poolCount);
+                dataOps.favoriteTransportMode(dataset3, datasetSize3, "Working Adults (Late Career)", carCount,
+                    busCount, bicycleCount, walkCount, schoolBusCount, poolCount);
+                dataOps.favoriteTransportMode(dataset3, datasetSize3, "Working Adults (Early Career)", carCount,
+                    busCount, bicycleCount, walkCount, schoolBusCount, poolCount);
+                dataOps.favoriteTransportMode(dataset3, datasetSize3, "University Students/Young Adults", carCount,
+                    busCount, bicycleCount, walkCount, schoolBusCount, poolCount);
+                dataOps.favoriteTransportMode(dataset3, datasetSize3, "Children & Teenagers", carCount, busCount,
                     bicycleCount, walkCount, schoolBusCount, poolCount);
             }
             else if(userChoice == 4){
                 dataOps.categorizeAgeGroup(dataset1, datasetSize1);
                 dataOps.categorizeAgeGroup(dataset2, datasetSize2);
                 dataOps.categorizeAgeGroup(dataset3, datasetSize3);
+                cout << endl;
                 dataOps.totalCarbonEmission(datasetArr, 200, 178, 122);
             }
             else if(userChoice == 5){

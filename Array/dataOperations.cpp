@@ -35,9 +35,30 @@ void dataOperations::categorizeAgeGroup(resident array[], int size){
     }
 }
 
-void dataOperations::calculateTransportModeCount(resident array[], string ageGroup,
-    int& carCount, int& busCount, int& bicycleCount, int& walkCount,
-    int& schoolBusCount, int& poolCount, int size){
+//void dataOperations::calculateTransportModeCount(resident array[], string ageGroup,
+//    int& carCount, int& busCount, int& bicycleCount, int& walkCount,
+//    int& schoolBusCount, int& poolCount, int size){
+//    carCount = 0;
+//    busCount = 0;
+//    bicycleCount = 0;
+//    walkCount = 0;
+//    schoolBusCount = 0;
+//    poolCount = 0;
+//    for(int i=0; i<size;i++){
+//        if (array[i].getAgeGroup() == ageGroup)
+//        {
+//            if (array[i].getTransport() == "Car")carCount++;
+//            else if (array[i].getTransport() == "Bus") busCount++;
+//            else if (array[i].getTransport() == "Bicycle") bicycleCount++;
+//            else if (array[i].getTransport() == "Walking") walkCount++;
+//            else if (array[i].getTransport() == "School Bus") schoolBusCount++;
+//            else if (array[i].getTransport() == "Carpool") poolCount++;
+//        }
+//    }
+//}
+
+void dataOperations::favoriteTransportMode(resident *array, int size, std::string ageGroup, int carCount,
+    int busCount, int bicycleCount, int walkCount, int schoolBusCount, int poolCount){
     carCount = 0;
     busCount = 0;
     bicycleCount = 0;
@@ -55,10 +76,6 @@ void dataOperations::calculateTransportModeCount(resident array[], string ageGro
             else if (array[i].getTransport() == "Carpool") poolCount++;
         }
     }
-}
-
-void dataOperations::favoriteTransportMode(string ageGroup, int carCount, int busCount, int bicycleCount, int walkCount,
-    int schoolBusCount, int poolCount){
     int maxCount = carCount;
     if (busCount > maxCount) maxCount = busCount;
     if (bicycleCount > maxCount) maxCount = bicycleCount;
@@ -69,12 +86,12 @@ void dataOperations::favoriteTransportMode(string ageGroup, int carCount, int bu
         cout << "No transportation mode data available for " << ageGroup << "." << endl;
         return;
     }
-    else if (maxCount == carCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Car" << endl;
-    else if (maxCount == busCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Bus" << endl;
-    else if (maxCount == bicycleCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Bicycle" << endl;
-    else if (maxCount == walkCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Walking" << endl;
-    else if (maxCount == schoolBusCount) cout << "The most preferred transportation mode for " << ageGroup << " is: School Bus" << endl;
-    else if (maxCount == poolCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Carpool" << endl;
+    else if (maxCount == carCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Car with " << carCount << " users" << endl;
+    else if (maxCount == busCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Bus with " << busCount << " users" << endl;
+    else if (maxCount == bicycleCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Bicycle with " << bicycleCount << " users" << endl;
+    else if (maxCount == walkCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Walking with " << walkCount << " users" << endl;
+    else if (maxCount == schoolBusCount) cout << "The most preferred transportation mode for " << ageGroup << " is: School Bus with " << schoolBusCount << " users" << endl;
+    else if (maxCount == poolCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Carpool with " << poolCount << " users" << endl;
 }
 
 void dataOperations::totalCarbonEmission(resident* array[], int size1, int size2, int size3){
@@ -84,12 +101,12 @@ void dataOperations::totalCarbonEmission(resident* array[], int size1, int size2
     for(int i=0; i<3;i++){
         seniorEmission = 0, lateEmission = 0, earlyEmission = 0, universityEmission = 0, childEmission = 0, totalEmission = 0;
         for(int j=0; j<size[i]; j++){
-            totalEmission += array[i][j].getCarbonEmission();
-            if (array[i][j].getAgeGroup() == "Senior Citizens/Retirees") seniorEmission += array[i][j].getCarbonEmission();
-            else if (array[i][j].getAgeGroup() == "Working Adults (Late Career)") lateEmission += array[i][j].getCarbonEmission();
-            else if (array[i][j].getAgeGroup() == "Working Adults (Early Career)") earlyEmission += array[i][j].getCarbonEmission();
-            else if (array[i][j].getAgeGroup() == "University Students/Young Adults") universityEmission += array[i][j].getCarbonEmission();
-            else if (array[i][j].getAgeGroup() == "Children & Teenagers") childEmission += array[i][j].getCarbonEmission();
+            totalEmission += array[i][j].getCarbonEmission() * array[i][j].getDistance() * array[i][j].getAverageDay();
+            if (array[i][j].getAgeGroup() == "Senior Citizens/Retirees") seniorEmission += array[i][j].getCarbonEmission() * array[i][j].getDistance() * array[i][j].getAverageDay();
+            else if (array[i][j].getAgeGroup() == "Working Adults (Late Career)") lateEmission += array[i][j].getCarbonEmission() * array[i][j].getDistance() * array[i][j].getAverageDay();
+            else if (array[i][j].getAgeGroup() == "Working Adults (Early Career)") earlyEmission += array[i][j].getCarbonEmission() * array[i][j].getDistance() * array[i][j].getAverageDay();
+            else if (array[i][j].getAgeGroup() == "University Students/Young Adults") universityEmission += array[i][j].getCarbonEmission() * array[i][j].getDistance() * array[i][j].getAverageDay();
+            else if (array[i][j].getAgeGroup() == "Children & Teenagers") childEmission += array[i][j].getCarbonEmission() * array[i][j].getDistance() * array[i][j].getAverageDay();
         }
         displayTotalEmission(datasetName[i], totalEmission, seniorEmission, lateEmission, earlyEmission, universityEmission, childEmission);
         averageCarbonEmissionPerResident(array[i], seniorEmission, lateEmission, earlyEmission, universityEmission, childEmission, totalEmission, size[i]);
@@ -101,22 +118,22 @@ void dataOperations::carbonEmissionPerTransportMode(resident array[], string dat
     int carCount = 0, busCount = 0, bicycleCount = 0, walkCount = 0, schoolBusCount = 0, carpoolCount = 0;
     for(int i=0; i<size;i++){
         if (array[i].getTransport() == "Car"){
-            carEmission += array[i].getCarbonEmission();
+            carEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
             carCount++;}
         else if (array[i].getTransport() == "Bus") {
-            busEmission += array[i].getCarbonEmission();
+            busEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
             busCount++;}
         else if (array[i].getTransport() == "Bicycle") {
-            bicycleEmission += array[i].getCarbonEmission();
+            bicycleEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
             bicycleCount++;}
         else if (array[i].getTransport() == "Walking") {
-            walkEmission += array[i].getCarbonEmission();
+            walkEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
             walkCount++;}
         else if (array[i].getTransport() == "School Bus") {
-            schoolBusEmission += array[i].getCarbonEmission();
+            schoolBusEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
             schoolBusCount++;}
         else if (array[i].getTransport() == "Carpool") {
-            poolEmission += array[i].getCarbonEmission();
+            poolEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
             carpoolCount++;}
     }
     cout << "\n" << datasetName << endl;
@@ -182,24 +199,24 @@ void dataOperations::emissionComparison(resident array[], string ageGroup, int s
     for(int i=0; i<size;i++){
         if(array[i].getAgeGroup()==ageGroup){
             if(array[i].getTransport() == "Car") {
-                carEmission += array[i].getCarbonEmission();
+                carEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
                 carCount++;}
             else if(array[i].getTransport() == "Bus") {
-                busEmission += array[i].getCarbonEmission();
+                busEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
                 busCount++;}
             else if(array[i].getTransport() == "Bicycle") {
-                bicycleEmission += array[i].getCarbonEmission();
+                bicycleEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
                 bicycleCount++;}
             else if(array[i].getTransport() == "Walking") {
-                walkEmission += array[i].getCarbonEmission();
+                walkEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
                 walkCount++;}
             else if(array[i].getTransport() == "School Bus") {
-                schoolEmission += array[i].getCarbonEmission();
+                schoolEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
                 schoolBusCount++;}
             else if(array[i].getTransport() == "Carpool") {
-                poolEmission += array[i].getCarbonEmission();
+                poolEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
                 poolCount++;}
-            totalEmission += array[i].getCarbonEmission();
+            totalEmission += array[i].getCarbonEmission() * array[i].getDistance() * array[i].getAverageDay();
         }
     }
     avgCarEmission = carEmission / carCount;

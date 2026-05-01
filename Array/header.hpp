@@ -73,6 +73,15 @@ private:
     size_t before, after, usedMemory, peakMemory; // memory usage variables
     int maxDepth;                                 // tracks deepest recursion Quick Sort reaches
     int currentDepth;                             // tracks current recursion level
+    size_t *insBefore = new size_t[3];
+    size_t *insPeak = new size_t[3];
+    size_t *insAfter = new size_t[3];
+    size_t *bsBefore = new size_t[3];
+    size_t *bsPeak = new size_t[3];
+    size_t *bsAfter = new size_t[3];
+    size_t *qsBefore = new size_t[3];
+    size_t *qsPeak = new size_t[3];
+    size_t *qsAfter = new size_t[3];
 
 public:
     bool compareLess(resident a, resident b, enum SortKey key);
@@ -180,40 +189,39 @@ void *operator new[](size_t size);
 void operator delete[](void *memory) noexcept;
 void operator delete[](void *memory, size_t size) noexcept;
 
-class dataOperations
-{
-private:
-    string residentID, age, transport, dailyDistance, carbonEmissionFactor, averageDay, line;
-    int seniorCount = 0, lateCount = 0, earlyCount = 0, universityCount = 0, childCount = 0;
-    int carCount, busCount, bicycleCount, walkCount, schoolBusCount, poolCount;
-
-public:
-    resident *importDataset(string filename, resident dataset[], int size);
-    void categorizeAgeGroup(resident array[], int size);
-    void calculateTransportModeCount(resident array[], string ageGroup, int &carCount, int &busCount,
-                                     int &bicycleCount, int &walkCount, int &schoolBusCount, int &poolCount, int size);
-    void favoriteTransportMode(string ageGroup, int carCount, int busCount,
-                               int bicycleCount, int walkCount, int schoolBusCount, int poolCount);
-    void totalCarbonEmission(resident *array[], int size1, int size2, int size3);
-    void displayTotalEmission(string datasetName, float totalEmission, float seniorEmission, float lateEmission, float earlyEmission, float universityEmission, float childEmission);
-    void averageCarbonEmissionPerResident(resident array[], float seniorEmission, float lateEmission,
-                                          float earlyEmission, float universityEmission, float childEmission, float totalEmission, int size);
-    void displayFavoriteTransportMode(string ageGroup, string favoriteMode);
-    void displayAgeGroupData();
-    void displayData(resident array[], int size);
-    void carbonEmissionPerTransportMode(resident array[], string datasetName, int size);
-    void emissionComparison(resident array[], string ageGroup, int size, string datasetName);
-    void displayEmissionComparison(int carCount, int busCount, int bicycleCount,
-                                   int walkCount, int schoolBusCount, int poolCount, float totalEmission, float carEmission,
-                                   float busEmission, float bicycleEmission, float walkEmission, float schoolEmission, float poolEmission,
-                                   float avgCarEmission, float avgBusEmission, float avgBicycleEmission, float avgWalkEmission, float avgSchoolEmission,
-                                   float avgPoolEmission, string ageGroup, string datasetName);
-    // setters for age group counts
-    void setSeniorCount(int count);
-    void setLateCount(int count);
-    void setEarlyCount(int count);
-    void setUniversityCount(int count);
-    void setChildCount(int count);
+class dataOperations{
+    private:
+        string residentID, age, transport, dailyDistance, carbonEmissionFactor, averageDay, line;
+        int seniorCount = 0, lateCount = 0, earlyCount = 0, universityCount = 0, childCount = 0;
+        int carCount, busCount, bicycleCount, walkCount, schoolBusCount, poolCount;
+        void calculateTransportModeCount(resident array[], string ageGroup, int& carCount, int& busCount,
+            int& bicycleCount, int& walkCount, int& schoolBusCount, int& poolCount, int size);
+    public:
+        resident* importDataset(string filename, resident dataset[], int size);
+        void categorizeAgeGroup(resident array[], int size);
+        void favoriteTransportMode(resident array[], int size, string ageGroup, int carCount, int busCount,
+            int bicycleCount, int walkCount, int schoolBusCount, int poolCount);
+        void totalCarbonEmission(resident* array[], int size1, int size2, int size3);
+        void displayTotalEmission(string datasetName, float totalEmission, float
+            seniorEmission, float lateEmission, float earlyEmission, float universityEmission, float childEmission);
+        void averageCarbonEmissionPerResident(resident array[], float seniorEmission, float lateEmission,
+            float earlyEmission, float universityEmission, float childEmission, float totalEmission, int size);
+        void displayFavoriteTransportMode(string ageGroup, string favoriteMode);
+        void displayAgeGroupData();
+        void displayData(resident array[], int size);
+        void carbonEmissionPerTransportMode(resident array[], string datasetName, int size);
+        void emissionComparison(resident array[], string ageGroup, int size, string datasetName);
+        void displayEmissionComparison(int carCount, int busCount, int bicycleCount,
+            int walkCount, int schoolBusCount, int poolCount, float totalEmission, float carEmission,
+            float busEmission, float bicycleEmission, float walkEmission, float schoolEmission, float poolEmission,
+            float avgCarEmission, float avgBusEmission, float avgBicycleEmission, float avgWalkEmission, float avgSchoolEmission,
+            float avgPoolEmission, string ageGroup, string datasetName);
+        //setters for age group counts
+        void setSeniorCount(int count);
+        void setLateCount(int count);
+        void setEarlyCount(int count);
+        void setUniversityCount(int count);
+        void setChildCount(int count);
 };
 
 #endif
