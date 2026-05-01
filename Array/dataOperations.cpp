@@ -57,8 +57,9 @@ void dataOperations::calculateTransportModeCount(resident array[], string ageGro
     }
 }
 
-void dataOperations::favoriteTransportMode(string ageGroup, int carCount, int busCount, int bicycleCount, int walkCount,
+void dataOperations::favoriteTransportMode(resident array[], int size, string ageGroup, int carCount, int busCount, int bicycleCount, int walkCount,
     int schoolBusCount, int poolCount){
+    calculateTransportModeCount(array, ageGroup, carCount, busCount, bicycleCount, walkCount, schoolBusCount, poolCount, size);
     int maxCount = carCount;
     if (busCount > maxCount) maxCount = busCount;
     if (bicycleCount > maxCount) maxCount = bicycleCount;
@@ -69,12 +70,12 @@ void dataOperations::favoriteTransportMode(string ageGroup, int carCount, int bu
         cout << "No transportation mode data available for " << ageGroup << "." << endl;
         return;
     }
-    else if (maxCount == carCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Car" << endl;
-    else if (maxCount == busCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Bus" << endl;
-    else if (maxCount == bicycleCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Bicycle" << endl;
-    else if (maxCount == walkCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Walking" << endl;
-    else if (maxCount == schoolBusCount) cout << "The most preferred transportation mode for " << ageGroup << " is: School Bus" << endl;
-    else if (maxCount == poolCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Carpool" << endl;
+    else if (maxCount == carCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Car, with " << maxCount << " users" << endl;
+    else if (maxCount == busCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Bus, with " << maxCount << " users" << endl;
+    else if (maxCount == bicycleCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Bicycle, with " << maxCount << " users" << endl;
+    else if (maxCount == walkCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Walking, with " << maxCount << " users" << endl;
+    else if (maxCount == schoolBusCount) cout << "The most preferred transportation mode for " << ageGroup << " is: School Bus, with " << maxCount << " users" << endl;
+    else if (maxCount == poolCount) cout << "The most preferred transportation mode for " << ageGroup << " is: Carpool, with " << maxCount << " users" << endl;
 }
 
 void dataOperations::totalCarbonEmission(resident* array[], int size1, int size2, int size3){
@@ -148,7 +149,6 @@ void dataOperations::carbonEmissionPerTransportMode(resident array[], string dat
 
 void dataOperations::displayTotalEmission(string datasetName, float totalEmission, float seniorEmission,
     float lateEmission, float earlyEmission, float universityEmission, float childEmission){
-    cout << endl;
     cout << "====================================================================================================" << endl;
     cout << "Carbon Emission: " << datasetName << endl << endl;
     cout << "Total Carbon Emission: " << totalEmission << endl;
@@ -265,7 +265,6 @@ void dataOperations::displayAgeGroupData(){
 }
 
 void dataOperations::displayData(resident array[], int size){
-    cout << array[0].getID() << endl;
     cout << size << " residents found in the dataset." << endl;
     cout << " | " <<"Resident ID" << " | " << "Age" << " | " << "Transport Mode"
         << " | " << "Daily Distance" << " | " << "Carbon Emission Factor" << " | "
