@@ -748,8 +748,9 @@ string indent(int level) {
     return s;
 }
 
+//BFS search (unsorted)
 //BFS traversal over the transport tree
-void bfsSearch(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
+void bfsSearchUnsorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
     matchedHead = NULL;
     matchCount = 0;
 
@@ -760,45 +761,46 @@ void bfsSearch(Node* head, const string& rootLabel, int ageGroup, const string& 
     initTreeQueue(q);
     enqueueTree(q, root);
 
-    cout << "\nBFS traversal order (level by level):" << endl;
-    int step = 1;
-    bool firstFound = false;
+    freeTree(root);
+}
+
+//BFS search (sorted)
+void bfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, 
+                     int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
+    matchedHead = NULL;
+    matchCount = 0;
+
+    Node* sortedList = copyList(head);
+    if(sortedList == NULL) return;
+    bubbleSort(sortedList, sort_age, sort_asc);
+
+    TreeNode* root = buildTransportTree(sortedList, rootLabel);
+    string targetLower = toLower(targetMode);
+
+    TreeQueue q;
+    initTreeQueue(q);
+    enqueueTree(q, root);
 
     while(!isTreeQueueEmpty(q)) {
         TreeNode* current = dequeueTree(q);
-
-        if(!firstFound) {
-            cout << indent(current->level) << step << ". [L" << current->level << "] " << current->label;
-            if(current->residentCount > 0) cout << " (" << current->residentCount << " residents)";
-            if(current->childCount > 0) cout << " [" << current->childCount << " children]";
-            cout << endl;
-        }
-        step++;
-
         Node* resCur = current->residentsHead;
         while(resCur != NULL) {
             if(passesFilters(resCur->data, ageGroup, targetLower, distThreshold, distOp)) {
                 insert(matchedHead, resCur->data);
                 matchCount++;
-                if(!firstFound) {
-                    cout << indent(current->level) << "   >> First match found at step " << (step - 1) << endl;
-                    firstFound = true;
-                }
             }
             resCur = resCur->next;
         }
-
         for(int i = 0; i < current->childCount; i++) {
             enqueueTree(q, current->children[i]);
         }
     }
-    cout << "Total nodes visited: " << (step - 1) << endl;
     freeTree(root);
+    freeList(sortedList);
 }
 
-//DFS SEARCH
 //DFS recursive helper
-void dfsTreeHelper(TreeNode* current, int ageGroup, const string& targetLower, int distThreshold, char distOp, Node*& matchedHead, int& matchCount, int& step, bool& firstFound) {
+void dfsTreeHelper(TreeNode* current, int ageGroup, const string& targetLower, int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
     if(!firstFound) {
         cout << indent(current->level) << step << ". [L" << current->level << "] " << current->label;
         if(current->residentCount > 0) cout << " (" << current->residentCount << " residents)";
@@ -825,18 +827,34 @@ void dfsTreeHelper(TreeNode* current, int ageGroup, const string& targetLower, i
     }
 }
 
+//DFS search (unsorted)
 //DFS traversal over the transport tree
-void dfsSearch(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
+void dfsSearchUnsorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
     matchedHead = NULL;
     matchCount = 0;
 
     TreeNode* root = buildTransportTree(head, rootLabel);
     string targetLower = toLower(targetMode);
 
-    cout << "\nDFS traversal order (depth-first):" << endl;
-    int step = 1;
-    bool firstFound = false;
     dfsTreeHelper(root, ageGroup, targetLower, distThreshold, distOp, matchedHead, matchCount, step, firstFound);
-    cout << "Total nodes visited: " << (step - 1) << endl;
     freeTree(root);
 }
+
+//DFS search (sorted)
+void dfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const string& targetMode, 
+                     int distThreshold, char distOp, Node*& matchedHead, int& matchCount) {
+    matchedHead = NULL;
+    matchCount = 0;
+
+    Node* sortedList = copyList(head);
+    if(sortedList == NULL) return;
+    bubbleSort(sortedList, sort_age, sort_asc);
+
+    TreeNode* root = buildTransportTree(sortedList, rootLabel);
+    string targetLower = toLower(targetMode);
+
+    dfsTreeHelper(root, ageGroup, targetLower, distThreshold, distOp, matchedHead, matchCount);
+    freeTree(root);
+    freeList(sortedList);
+}
+
