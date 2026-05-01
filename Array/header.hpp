@@ -73,6 +73,15 @@ private:
     size_t before, after, usedMemory, peakMemory; // memory usage variables
     int maxDepth;                                 // tracks deepest recursion Quick Sort reaches
     int currentDepth;                             // tracks current recursion level
+    size_t *insBefore = new size_t[3];
+    size_t *insPeak = new size_t[3];
+    size_t *insAfter = new size_t[3];
+    size_t *bsBefore = new size_t[3];
+    size_t *bsPeak = new size_t[3];
+    size_t *bsAfter = new size_t[3];
+    size_t *qsBefore = new size_t[3];
+    size_t *qsPeak = new size_t[3];
+    size_t *qsAfter = new size_t[3];
 
 public:
     bool compareLess(resident a, resident b, enum SortKey key);

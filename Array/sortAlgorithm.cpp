@@ -83,6 +83,9 @@ string sortAlgorithm::getSortKeyLabel(enum SortKey key)
 //  - Space: O(1) – sorts in-place, no extra memory needed
 void sortAlgorithm::insertionSort(resident arr[], int size, SortKey key)
 {
+    size_t beforeMemory = memTracker.trackMemoryUsage();
+    peakMemory = 0;
+
     for (int i = 1; i < size; i++)
     {
         resident key_elem = arr[i];
@@ -96,7 +99,7 @@ void sortAlgorithm::insertionSort(resident arr[], int size, SortKey key)
     }
     // insertion sort only ever uses one temp variable (key_elem)
     // so stack memory is always fixed at sizeof(resident)
-    peakMemory = sizeof(resident);
+    peakMemory = memTracker.trackMemoryUsage() - beforeMemory;
 }
 
 //  BUBBLE SORT
@@ -106,6 +109,9 @@ void sortAlgorithm::insertionSort(resident arr[], int size, SortKey key)
 //  - Space: O(1) – only needs one temp variable for swapping
 void sortAlgorithm::bubbleSort(resident arr[], int size, SortKey key)
 {
+    size_t beforeMemory = memTracker.trackMemoryUsage();
+    peakMemory = 0;
+
     bool swapped;
     for (int i = 0; i < size - 1; i++)
     {
@@ -130,7 +136,7 @@ void sortAlgorithm::bubbleSort(resident arr[], int size, SortKey key)
     }
     // bubble sort only ever uses one temp variable for swapping
     // so stack memory is always fixed at sizeof(resident)
-    peakMemory = sizeof(resident);
+    peakMemory = memTracker.trackMemoryUsage() - beforeMemory;
 }
 
 //  QUICK SORT – Partition Helper
@@ -165,6 +171,9 @@ int sortAlgorithm::partition(resident arr[], int low, int high, SortKey key)
 //  - Space: O(log n) – recursive call stack
 void sortAlgorithm::quickSort(resident arr[], int low, int high, SortKey key)
 {
+    size_t beforeMemory = memTracker.trackMemoryUsage();
+    peakMemory = 0;
+
     // track how deep the recursion goes
     currentDepth++;
     if (currentDepth > maxDepth)
@@ -177,6 +186,7 @@ void sortAlgorithm::quickSort(resident arr[], int low, int high, SortKey key)
         quickSort(arr, pivotIndex + 1, high, key);
     }
 
+    peakMemory = memTracker.trackMemoryUsage() - beforeMemory;
     // going back up one recursion level
     currentDepth--;
 }
@@ -232,7 +242,7 @@ void sortAlgorithm::printPerformanceTable(double insTime[], double bsTime[], dou
          << setw(10) << "Size"
          << setw(24) << "Time (microseconds)"
          << setw(18) << "Memory (Before)"
-         << setw(20) << "Stack Memory"
+         << setw(20) << "Allocated Memory"
          << setw(16) << "Memory (After)" << endl;
     cout << "  " << string(125, '-') << endl;
 
@@ -310,15 +320,6 @@ void sortAlgorithm::runSortingSection(resident dataset1[], int size1,
     double *insTime = new double[3];
     double *bsTime = new double[3];
     double *qsTime = new double[3];
-    size_t *insBefore = new size_t[3];
-    size_t *insPeak = new size_t[3];
-    size_t *insAfter = new size_t[3];
-    size_t *bsBefore = new size_t[3];
-    size_t *bsPeak = new size_t[3];
-    size_t *bsAfter = new size_t[3];
-    size_t *qsBefore = new size_t[3];
-    size_t *qsPeak = new size_t[3];
-    size_t *qsAfter = new size_t[3];
 
     //  INSERTION SORT on all 3 datasets
     cout << "\n"
@@ -330,9 +331,9 @@ void sortAlgorithm::runSortingSection(resident dataset1[], int size1,
     auto start = chrono::high_resolution_clock::now();
     insertionSort(copy1, size1, key);
     auto end = chrono::high_resolution_clock::now();
+    insTime[0] = chrono::duration<double, micro>(end - start).count();
     insAfter[0] = memTracker.trackMemoryUsage();
     insPeak[0] = peakMemory;
-    insTime[0] = chrono::duration<double, micro>(end - start).count();
     printSortedTable(copy1, size1, key, "Insertion Sort", "City A");
     cout << "  Execution Time: " << fixed << setprecision(3) << insTime[0] << " microseconds\n"
          << endl;
@@ -346,9 +347,9 @@ void sortAlgorithm::runSortingSection(resident dataset1[], int size1,
     start = chrono::high_resolution_clock::now();
     insertionSort(copy2, size2, key);
     end = chrono::high_resolution_clock::now();
+    insTime[1] = chrono::duration<double, micro>(end - start).count();
     insAfter[1] = memTracker.trackMemoryUsage();
     insPeak[1] = peakMemory;
-    insTime[1] = chrono::duration<double, micro>(end - start).count();
     printSortedTable(copy2, size2, key, "Insertion Sort", "City B");
     cout << "  Execution Time: " << fixed << setprecision(3) << insTime[1] << " microseconds\n"
          << endl;
@@ -362,9 +363,9 @@ void sortAlgorithm::runSortingSection(resident dataset1[], int size1,
     start = chrono::high_resolution_clock::now();
     insertionSort(copy3, size3, key);
     end = chrono::high_resolution_clock::now();
+    insTime[2] = chrono::duration<double, micro>(end - start).count();
     insAfter[2] = memTracker.trackMemoryUsage();
     insPeak[2] = peakMemory;
-    insTime[2] = chrono::duration<double, micro>(end - start).count();
     printSortedTable(copy3, size3, key, "Insertion Sort", "City C");
     cout << "  Execution Time: " << fixed << setprecision(3) << insTime[2] << " microseconds\n"
          << endl;
@@ -400,8 +401,8 @@ void sortAlgorithm::runSortingSection(resident dataset1[], int size1,
     bubbleSort(copy2, size2, key);
     end = chrono::high_resolution_clock::now();
     bsAfter[1] = memTracker.trackMemoryUsage();
-    bsTime[1] = chrono::duration<double, micro>(end - start).count();
     bsPeak[1] = peakMemory;
+    bsTime[1] = chrono::duration<double, micro>(end - start).count();
     printSortedTable(copy2, size2, key, "Bubble Sort", "City B");
     cout << "  Execution Time: " << fixed << setprecision(3) << bsTime[1] << " microseconds\n"
          << endl;
@@ -439,9 +440,8 @@ void sortAlgorithm::runSortingSection(resident dataset1[], int size1,
     quickSort(copy1, 0, size1 - 1, key);
     end = chrono::high_resolution_clock::now();
     qsAfter[0] = memTracker.trackMemoryUsage();
+    qsPeak[0] = peakMemory;
     qsTime[0] = chrono::duration<double, micro>(end - start).count();
-    // stack memory = depth × bytes used per recursive call frame
-    qsPeak[0] = maxDepth * (sizeof(resident *) + sizeof(int) * 3 + sizeof(SortKey));
     printSortedTable(copy1, size1, key, "Quick Sort", "City A");
     cout << "  Memory before sorting: " << qsBefore[0] << " bytes" << endl;
     cout << "  Memory allocated during sorting: " << qsPeak[0] << " bytes" << endl;
@@ -456,8 +456,8 @@ void sortAlgorithm::runSortingSection(resident dataset1[], int size1,
     quickSort(copy2, 0, size2 - 1, key);
     end = chrono::high_resolution_clock::now();
     qsAfter[1] = memTracker.trackMemoryUsage();
+    qsPeak[1] = peakMemory;
     qsTime[1] = chrono::duration<double, micro>(end - start).count();
-    qsPeak[1] = maxDepth * (sizeof(resident *) + sizeof(int) * 3 + sizeof(SortKey));
     printSortedTable(copy2, size2, key, "Quick Sort", "City B");
     cout << "  Memory before sorting: " << qsBefore[1] << " bytes" << endl;
     cout << "  Memory allocated during sorting: " << qsPeak[1] << " bytes" << endl;
@@ -473,7 +473,7 @@ void sortAlgorithm::runSortingSection(resident dataset1[], int size1,
     end = chrono::high_resolution_clock::now();
     qsAfter[2] = memTracker.trackMemoryUsage();
     qsTime[2] = chrono::duration<double, micro>(end - start).count();
-    qsPeak[2] = maxDepth * (sizeof(resident *) + sizeof(int) * 3 + sizeof(SortKey));
+    qsPeak[2] = peakMemory;
     printSortedTable(copy3, size3, key, "Quick Sort", "City C");
     cout << "  Memory before sorting: " << qsBefore[2] << " bytes" << endl;
     cout << "  Memory allocated during sorting: " << qsPeak[2] << " bytes" << endl;
