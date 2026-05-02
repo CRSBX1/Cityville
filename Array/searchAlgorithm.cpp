@@ -67,10 +67,16 @@ searchAlgorithm::searchAlgorithm(resident* dataset1, resident* dataset2, residen
 
 void searchAlgorithm::chooseAlgorithm(){
     int searchMainInput;
+    int averageMenuInput;
+    int iterationCount;
     string datasetChoice;
+    string algorithmName;
     string searchCriteriaCondition;
+    size_t* axMemory = new size_t[3];
+    float* exTime = new float[3];
     while(true)
     {
+        iterationCount = 1;
         peakMemory = 0;
         cout << sep << endl;
         cout << "Welcome to search menu:" << endl;
@@ -114,6 +120,18 @@ void searchAlgorithm::chooseAlgorithm(){
         cin >> userChoice;
 
         if(userChoice>5 || userChoice<1){
+            cout << "Invalid input, try again";
+            continue;
+        }
+
+        cout << sep << endl;
+        cout << "One time run or average run: " << endl;
+        cout << "1. One time run" << endl;
+        cout << "2. Average run" << endl;
+        cout << "Enter your choice: ";
+        cin >> averageMenuInput;
+
+        if(averageMenuInput>2 || averageMenuInput<1){
             cout << "Invalid input, try again";
             continue;
         }
@@ -184,58 +202,73 @@ void searchAlgorithm::chooseAlgorithm(){
         }
 
         enum criteria criteriaEnum = criteriaChoice(criteriaInputChoice, ageGroup, transport, dailyDistance, searchCriteriaCondition);
-        if(userChoice == 1){
-            before =  memTracker.trackMemoryUsage();
-            auto start = chrono::high_resolution_clock::now();
-            linearSearch(dataset, arraySizes, criteriaEnum);
-            auto end = chrono::high_resolution_clock::now();
-            exTimeAlgo = chrono::duration<double, micro>(end - start).count();
-            after = memTracker.trackMemoryUsage();
-            usedMemory = after - before;
-            printFinalResult("Linear search", datasetChoice, searchCriteriaCondition, before, after, usedMemory);
+        for(int i=0; i<3; i++){
+            if(userChoice == 1){
+                algorithmName = "Linear search";
+                before =  memTracker.trackMemoryUsage();
+                auto start = chrono::high_resolution_clock::now();
+                linearSearch(dataset, arraySizes, criteriaEnum);
+                auto end = chrono::high_resolution_clock::now();
+                exTimeAlgo = chrono::duration<double, micro>(end - start).count();
+                after = memTracker.trackMemoryUsage();
+                usedMemory = after - before;
+                printFinalResult(algorithmName, datasetChoice, searchCriteriaCondition, before, after, usedMemory, iterationCount);
+            }
+            else if(userChoice == 2){
+                algorithmName = "Binary search";
+                before = memTracker.trackMemoryUsage();
+                auto start = chrono::high_resolution_clock::now();
+                binarySearch(dataset, criteriaEnum, arraySizes);
+                auto end = chrono::high_resolution_clock::now();
+                exTimeAlgo = chrono::duration<double, micro>(end - start).count();
+                after = memTracker.trackMemoryUsage();
+                usedMemory = after - before;
+                printFinalResult(algorithmName, datasetChoice, searchCriteriaCondition, before, after, usedMemory, iterationCount);
+            }
+            else if(userChoice == 3){
+                algorithmName = "Breadth-first search (BFS)";
+                before = memTracker.trackMemoryUsage();
+                auto start = chrono::high_resolution_clock::now();
+                breadthFirstSearch(dataset, arraySizes, criteriaEnum);
+                auto end = chrono::high_resolution_clock::now();
+                exTimeAlgo = chrono::duration<double, micro>(end - start).count();
+                after = memTracker.trackMemoryUsage();
+                usedMemory = after - before;
+                printFinalResult(algorithmName, datasetChoice, searchCriteriaCondition, before, after, usedMemory, iterationCount);
+            }
+            else if(userChoice == 4){
+                algorithmName = "Depth-first search (DFS)";
+                before = memTracker.trackMemoryUsage();
+                auto start = chrono::high_resolution_clock::now();
+                depthFirstSearch(dataset, arraySizes, criteriaEnum);
+                auto end = chrono::high_resolution_clock::now();
+                exTimeAlgo = chrono::duration<double, micro>(end - start).count();
+                after = memTracker.trackMemoryUsage();
+                usedMemory = after - before;
+                printFinalResult(algorithmName, datasetChoice, searchCriteriaCondition, before, after, usedMemory, iterationCount);
+            }
+            else if(userChoice == 5){
+                algorithmName = "A* search";
+                before = memTracker.trackMemoryUsage();
+                auto start = chrono::high_resolution_clock::now();
+                aStarSearch(dataset, arraySizes, criteriaEnum);
+                auto end = chrono::high_resolution_clock::now();
+                exTimeAlgo = chrono::duration<double, micro>(end - start).count();
+                after = memTracker.trackMemoryUsage();
+                usedMemory = after - before;
+                printFinalResult(algorithmName, datasetChoice, searchCriteriaCondition, before, after, usedMemory, iterationCount);
+            }
 
+            if(averageMenuInput == 1){
+                break;
+            }
+            axMemory[i] = usedMemory;
+            exTime[i] = exTimeAlgo;
+            if(i==2){
+                averageSearchInfo(algorithmName, axMemory, exTime);
+            }
+            iterationCount++;
         }
-        else if(userChoice == 2){
-            before = memTracker.trackMemoryUsage();
-            auto start = chrono::high_resolution_clock::now();
-            binarySearch(dataset, criteriaEnum, arraySizes);
-            auto end = chrono::high_resolution_clock::now();
-            exTimeAlgo = chrono::duration<double, micro>(end - start).count();
-            after = memTracker.trackMemoryUsage();
-            usedMemory = after - before;
-            printFinalResult("Binary search", datasetChoice, searchCriteriaCondition, before, after, usedMemory);
-        }
-        else if(userChoice == 3){
-            before = memTracker.trackMemoryUsage();
-            auto start = chrono::high_resolution_clock::now();
-            breadthFirstSearch(dataset, arraySizes, criteriaEnum);
-            auto end = chrono::high_resolution_clock::now();
-            exTimeAlgo = chrono::duration<double, micro>(end - start).count();
-            after = memTracker.trackMemoryUsage();
-            usedMemory = after - before;
-            printFinalResult("Breadth-first search (BFS)", datasetChoice, searchCriteriaCondition, before, after, usedMemory);
-        }
-        else if(userChoice == 4){
-            before = memTracker.trackMemoryUsage();
-            auto start = chrono::high_resolution_clock::now();
-            depthFirstSearch(dataset, arraySizes, criteriaEnum);
-            auto end = chrono::high_resolution_clock::now();
-            exTimeAlgo = chrono::duration<double, micro>(end - start).count();
-            after = memTracker.trackMemoryUsage();
-            usedMemory = after - before;
-            printFinalResult("Depth-first search (DFS)", datasetChoice, searchCriteriaCondition, before, after, usedMemory);
-        }
-        else if(userChoice == 5){
-            before = memTracker.trackMemoryUsage();
-            auto start = chrono::high_resolution_clock::now();
-            aStarSearch(dataset, arraySizes, criteriaEnum);
-            auto end = chrono::high_resolution_clock::now();
-            exTimeAlgo = chrono::duration<double, micro>(end - start).count();
-            after = memTracker.trackMemoryUsage();
-            usedMemory = after - before;
-            printFinalResult("A* search", datasetChoice, searchCriteriaCondition, before, after, usedMemory);
-        }
-        
     }
 
 }
@@ -918,7 +951,7 @@ void searchAlgorithm::setBinarySearchResults(struct searchStruct &result, int mi
 }
 
 //print search algorithm result
-void searchAlgorithm::printFinalResult(string algoName, string datasetName, string targetCriteria, size_t initialMemory, size_t afterMemory, size_t finalMemory){
+void searchAlgorithm::printFinalResult(string algoName, string datasetName, string targetCriteria, size_t initialMemory, size_t afterMemory, size_t finalMemory, int iterationCount){
     auto printIndex = [&](int amount, struct searchStruct target, string name) -> void{
         for(int i=0; i<amount;i++){
             cout << name << "'s " << target.results[i] << " index." << endl;
@@ -935,6 +968,7 @@ void searchAlgorithm::printFinalResult(string algoName, string datasetName, stri
     cout << "Algorithm name: " << algoName << endl;
     cout << "Used dataset: " << datasetName << endl;
     cout << "Search criteria: " << targetCriteria << endl;
+    cout << "Iteration count: " << iterationCount << endl;
     cout << sep2 << endl;
     cout << "Dataset 1" << endl;
     cout << "Matched data amount: " << structArr[0].amount << endl;
@@ -956,9 +990,44 @@ void searchAlgorithm::printFinalResult(string algoName, string datasetName, stri
     cout << sep2 << endl;
     cout << "Algorithm execution time: " << exTimeAlgo << " Microseconds" << endl << endl;
     cout << "Memory usage before algorithm execution: " << initialMemory << " bytes" << endl;
-    cout << "Peak memory usage during algorithm execution: " << peakMemory << " bytes" << endl;
+    cout << "Auxiliary memory usage: " << peakMemory << " bytes" << endl;
     cout << "Memory usage after algorithm execution: " << afterMemory << " bytes" << endl;
     cout << "Algorithm impact towards overall system memory usage: " << finalMemory << " bytes" << endl;
+}
+
+void searchAlgorithm::averageSearchInfo(string searchName, size_t axMemory[], float exTime[]){
+    cout << sep << endl ;
+    cout << "\n Average Execution Time & Auxiliary Memory Usage: " << searchName << endl;
+    cout << "  " << string(80, '=') << endl;
+    cout << "  " << left
+         << setw(20) << "Iteration"
+         << setw(24) << "Time (microseconds)"
+         << setw(20) << "Auxiliary Memory" << endl;
+    cout << "  " << string(80, '-') << endl;
+
+
+    cout << "  " << left
+        << setw(20) << ("First Iteration")
+        << setw(24) << fixed << setprecision(3) << exTime[0]
+        << setw(20) << axMemory[0] << endl;
+    cout << "  " << string(80, '-') << endl;
+
+    cout << "  " << left
+        << setw(20) << ("Second Iteration")
+        << setw(24) << fixed << setprecision(3) << exTime[1]
+        << setw(20) << axMemory[1] << endl;
+
+    cout << "  " << string(80, '-') << endl;
+
+    cout << "  " << left
+            << setw(20) << ("Third Iteration")
+            << setw(24) << fixed << setprecision(3) << exTime[2]
+            << setw(20) << axMemory[2] << endl;
+    cout << "  " << string(80, '=') << endl;
+    cout << "  " << left
+            << setw(20) << ("Average: ")
+            << setw(24) << fixed << setprecision(3) << (exTime[0] + exTime[1] + exTime[2]) / 3
+            << setw(20) << (axMemory[0] + axMemory[1] + axMemory[2]) / 3 << endl << endl;
 }
 
 //helper functions

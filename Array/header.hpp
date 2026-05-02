@@ -167,7 +167,7 @@ private:
     void depthFirstSearch(resident *arrayData[], int subarraySize[], enum criteria searchCriteria);
     void aStarSearch(resident *arrayData[], int subarraySize[], enum criteria searchCriteria);
     enum criteria criteriaChoice(int choice, string &ageGroup, string &transport, float &dailyDistance, string &searchCriteria);
-    void printFinalResult(string algoName, string datasetName, string targetCriteria, size_t initialMemory, size_t peakMemory, size_t finalMemory);
+    void printFinalResult(string algoName, string datasetName, string targetCriteria, size_t initialMemory, size_t peakMemory, size_t finalMemory, int iterationCount);
     int getEncode(string transport);
     int getMinAge(string ageGroup);
     int getMaxAge(string ageGroup);
@@ -180,6 +180,7 @@ public:
     void chooseAlgorithm();
     void linearSearch(resident *arrayData[], int subarraySize[], enum criteria searchCriteria);
     void binarySearch(resident *arrayData[], enum criteria searchCriteria, int subarraySize[]);
+    void averageSearchInfo(string searchName, size_t axMemory[], float exTime[]);
 };
 
 void *operator new(size_t size);
