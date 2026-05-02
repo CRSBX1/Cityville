@@ -77,7 +77,6 @@ void searchAlgorithm::chooseAlgorithm(){
     while(true)
     {
         iterationCount = 1;
-        peakMemory = 0;
         cout << sep << endl;
         cout << "Welcome to search menu:" << endl;
         cout << "1. Proceed" << endl;
@@ -203,6 +202,7 @@ void searchAlgorithm::chooseAlgorithm(){
 
         enum criteria criteriaEnum = criteriaChoice(criteriaInputChoice, ageGroup, transport, dailyDistance, searchCriteriaCondition);
         for(int i=0; i<3; i++){
+            peakMemory = 0;
             if(userChoice == 1){
                 algorithmName = "Linear search";
                 before =  memTracker.trackMemoryUsage();
@@ -262,7 +262,8 @@ void searchAlgorithm::chooseAlgorithm(){
             if(averageMenuInput == 1){
                 break;
             }
-            axMemory[i] = usedMemory;
+
+            axMemory[i] = peakMemory;
             exTime[i] = exTimeAlgo;
             if(i==2){
                 averageSearchInfo(algorithmName, axMemory, exTime);
@@ -270,7 +271,8 @@ void searchAlgorithm::chooseAlgorithm(){
             iterationCount++;
         }
     }
-
+    delete[] axMemory;
+    delete[] exTime;
 }
 
 enum searchAlgorithm::criteria searchAlgorithm::criteriaChoice(int choice, string& ageGroup,
