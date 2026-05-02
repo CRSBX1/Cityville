@@ -833,7 +833,8 @@ void searchingMenu(Node* cityA, Node* cityB, Node* cityC) {
         cout << "3. Breadth-First Search" << endl;
         cout << "4. Depth-First Search" << endl;
         cout << "5. A* Search" << endl;
-        cout << "6. Back to main menu" << endl;
+        cout << "6. Search Comparison" << endl;
+        cout << "7. Back to main menu" << endl;
         printSeparator(57, '-');
         cout << "Select search algorithm: ";
         cin >> choice;
@@ -855,11 +856,260 @@ void searchingMenu(Node* cityA, Node* cityB, Node* cityC) {
                 aStarSearchMenu(cityA, cityB, cityC);
                 break;
             case 6:
+                searchComparisonMenu(cityA, cityB, cityC);
+                break;
+            case 7:
                 cout << endl;
                 break;
             default:
                 cout << "Invalid choice. Please try again" << endl;
                 break;
         }
-    } while(choice != 6);
+    } while(choice != 7);
+}
+
+//SEARCH COMPARISON MENU
+//runs a selected search algorithm 3 times each for unsorted and sorted, records time (microseconds) and memory per iteration, then computes the average
+void searchComparisonMenu(Node* cityA, Node* cityB, Node* cityC) {
+    Node* lists[3] = {cityA, cityB, cityC};
+    string names[3] = {"City A", "City B", "City C"};
+
+    int choice;
+    do {
+        //select search algorithm
+        printSeparator(57, '-');
+        cout << "Search Comparison" << endl;
+        cout << "\nSelect algorithm:" << endl;
+        cout << "1. Linear Search" << endl;
+        cout << "2. Binary Search (by Age Group)" << endl;
+        cout << "3. Binary Search (by Transport Mode)" << endl;
+        cout << "4. Binary Search (by Daily Distance)" << endl;
+        cout << "5. BFS Search" << endl;
+        cout << "6. DFS Search" << endl;
+        cout << "7. A* Search" << endl;
+        cout << "8. Back" << endl;
+        printSeparator(57, '-');
+        cout << "Select algorithm: ";
+        cin >> choice;
+
+        if(choice == 8) {
+            cout << endl;
+            break;
+        }
+        if(choice < 1 || choice > 7) {
+            cout << "Invalid choice. Please try again." << endl;
+            continue;
+        }
+
+        //select city
+        cout << "\nDataset:" << endl;
+        cout << "1. City A" << endl;
+        cout << "2. City B" << endl;
+        cout << "3. City C" << endl;
+        cout << "4. All Cities (Combined)" << endl;
+        cout << "Select dataset: ";
+        int cityChoice;
+        cin >> cityChoice;
+        if(cityChoice < 1 || cityChoice > 4) {
+            cout << "Invalid choice. Default to City A." << endl;
+            cityChoice = 1;
+        }
+
+        //build the search list
+        Node* searchList = NULL;
+        string datasetName;
+        bool freeCombined = false;
+
+        if(cityChoice == 4) {
+            datasetName = "All Cities";
+            for(int l = 0; l < 3; l++) {
+                Node* cur = lists[l];
+                while(cur != NULL) {
+                    insert(searchList, cur->data);
+                    cur = cur->next;
+                }
+            }
+            freeCombined = true;
+        } else {
+            searchList = lists[cityChoice - 1];
+            datasetName = names[cityChoice - 1];
+        }
+
+        //collect search criteria based on algorithm type
+        int ageGroup = 0;
+        string targetMode = "";
+        int distThreshold = 0;
+        char distOp = '0';
+        int minAge = -1, maxAge = -1;
+        int exactDist = 0;
+
+        if(choice == 1 || choice == 5 || choice == 6 || choice == 7) {
+            //linear, BFS, DFS, A* use combined filters
+            selectSearchCriteria(ageGroup, targetMode, distThreshold, distOp);
+        } else if(choice == 2) {
+            //binary search by age group
+            cout << "\nSelect age group:" << endl;
+            cout << "1. Children & Teenagers        (6-17)" << endl;
+            cout << "2. University / Young Adults   (18-25)" << endl;
+            cout << "3. Working Adults Early Career (26-45)" << endl;
+            cout << "4. Working Adults Late Career  (46-60)" << endl;
+            cout << "5. Senior Citizens / Retirees  (61-100)" << endl;
+            cout << "Select group: ";
+            int grp;
+            cin >> grp;
+            switch(grp) {
+                case 1: minAge = 6;  maxAge = 17;  break;
+                case 2: minAge = 18; maxAge = 25;  break;
+                case 3: minAge = 26; maxAge = 45;  break;
+                case 4: minAge = 46; maxAge = 60;  break;
+                case 5: minAge = 61; maxAge = 100; break;
+                default:
+                    cout << "Invalid group. Default to group 1." << endl;
+                    minAge = 6; maxAge = 17; grp = 1; break;
+            }
+        } else if(choice == 3) {
+            //binary search by transport mode
+            cout << "\nEnter transport mode to search: ";
+            cin.ignore();
+            getline(cin, targetMode);
+        } else if(choice == 4) {
+            //binary search by daily distance
+            cout << "\nEnter exact daily distance to search: ";
+            cin >> exactDist;
+        }
+
+        //build algorithm name for display
+        string algoNames[] = {"", "Linear search", "Binary search (Age)", "Binary search (Transport)", "Binary search (Distance)", "BFS search", "DFS search", "A* search"};
+        string algoName = algoNames[choice];
+
+        string iterNames[3] = {"First Iteration", "Second Iteration", "Third Iteration"};
+        int width = 75;
+
+        //run both unsorted and sorted
+        for(int s = 0; s < 2; s++) {
+            bool useSorted = (s == 1);
+            string sortLabel = useSorted ? "Sorted" : "Unsorted";
+
+            //prepare sorted list for linear search sorted variant
+            Node* sortedList = NULL;
+            bool freeSortedList = false;
+
+            if(useSorted && choice == 1) {
+                if(ageGroup >= 1 && ageGroup <= 5) {
+                    sortedList = sortListCopyByField(searchList, "age");
+                } else if(!targetMode.empty()) {
+                    sortedList = sortListCopyByField(searchList, "transport");
+                } else if(distOp == '>' || distOp == '<' || distOp == '=') {
+                    sortedList = sortListCopyByField(searchList, "distance");
+                } else {
+                    sortedList = searchList;
+                }
+                if(sortedList != searchList) freeSortedList = true;
+            }
+
+            //run 3 iterations
+            double times[3];
+            size_t mems[3];
+
+            for(int run = 0; run < 3; run++) {
+                Node* matchedHead = NULL;
+                int matchCount = 0;
+
+                MemoryMetrics::reset();
+                auto timer = startTimer();
+
+                //call the appropriate search function
+                if(choice == 1) {
+                    if(useSorted) {
+                        linearSearchCombined_Sorted(sortedList, ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+                    } else {
+                        linearSearchCombined_Unsorted(searchList, ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+                    }
+                } else if(choice == 2) {
+                    if(useSorted) {
+                        binarySearchByAgeGroup_Sorted(searchList, minAge, maxAge, matchedHead, matchCount);
+                    } else {
+                        binarySearchByAgeGroup_Unsorted(searchList, minAge, maxAge, matchedHead, matchCount);
+                    }
+                } else if(choice == 3) {
+                    if(useSorted) {
+                        binarySearchByTransport_Sorted(searchList, targetMode, matchedHead, matchCount);
+                    } else {
+                        binarySearchByTransport_Unsorted(searchList, targetMode, matchedHead, matchCount);
+                    }
+                } else if(choice == 4) {
+                    if(useSorted) {
+                        binarySearchByDistance_Sorted(searchList, exactDist, matchedHead, matchCount);
+                    } else {
+                        binarySearchByDistance_Unsorted(searchList, exactDist, matchedHead, matchCount);
+                    }
+                } else if(choice == 5) {
+                    if(useSorted) {
+                        bfsSearchSorted(searchList, datasetName, ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+                    } else {
+                        bfsSearchUnsorted(searchList, datasetName, ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+                    }
+                } else if(choice == 6) {
+                    if(useSorted) {
+                        dfsSearchSorted(searchList, datasetName, ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+                    } else {
+                        dfsSearchUnsorted(searchList, datasetName, ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+                    }
+                } else if(choice == 7) {
+                    if(useSorted) {
+                        aStarSearchSorted(searchList, ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+                    } else {
+                        aStarSearchUnsorted(searchList, ageGroup, targetMode, distThreshold, distOp, matchedHead, matchCount);
+                    }
+                }
+
+                times[run] = stopTimerMicro(timer);
+                mems[run] = MemoryMetrics::trackMemoryUsage();
+
+                freeList(matchedHead);
+            }
+
+            //compute averages
+            double avgTime = (times[0] + times[1] + times[2]) / 3.0;
+            double avgMem = (mems[0] + mems[1] + mems[2]) / 3.0;
+
+            //print comparison table
+            cout << endl;
+            printSeparator(width, '=');
+            cout << "Average Execution Time & Auxiliary Memory Usage: " << algoName << " (" << sortLabel << ")" << endl;
+            printSeparator(width, '=');
+            cout << left << setw(25) << "Iteration"
+                 << setw(25) << "Time (microseconds)"
+                 << setw(25) << "Auxiliary Memory"
+                 << endl;
+            printSeparator(width, '-');
+
+            for(int run = 0; run < 3; run++) {
+                cout << left << setw(25) << iterNames[run]
+                     << setw(25) << fixed << setprecision(3) << times[run]
+                     << setw(25) << mems[run]
+                     << endl;
+                printSeparator(width, '-');
+            }
+
+            cout << left << setw(25) << "Average:"
+                 << setw(25) << fixed << setprecision(3) << avgTime
+                 << setw(25) << fixed << setprecision(0) << avgMem
+                 << endl;
+            printSeparator(width, '=');
+
+            //cleanup sorted list if created
+            if(freeSortedList && sortedList != NULL) {
+                freeList(sortedList);
+            }
+        }
+
+        cout << endl;
+
+        //cleanup combined list
+        if(freeCombined) {
+            freeList(searchList);
+        }
+
+    } while(choice != 8);
 }

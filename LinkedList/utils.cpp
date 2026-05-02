@@ -23,6 +23,12 @@ double stopTimer(chrono::high_resolution_clock::time_point start) {
     return chrono::duration<double, milli>(end - start).count();
 }
 
+//calculates elapsed time in microseconds since the given start time
+double stopTimerMicro(chrono::high_resolution_clock::time_point start) {
+    auto end = chrono::high_resolution_clock::now();
+    return chrono::duration<double, micro>(end - start).count();
+}
+
 //returns which age group index a given age belongs to
 int getAgeGroupIndex(int age) {
     if(age >= 6  && age <= 17 ) { //children & teenagers

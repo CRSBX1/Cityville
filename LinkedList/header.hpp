@@ -138,6 +138,7 @@ struct MemoryMetrics {
 string toLower(const string& inputStr);
 chrono::high_resolution_clock::time_point startTimer();
 double stopTimer(chrono::high_resolution_clock::time_point start);
+double stopTimerMicro(chrono::high_resolution_clock::time_point start);
 int getAgeGroupIndex(int age);
 string getAgeGroupLabel(int groupIndex);
 string getAgeRangeLabel(int age);
@@ -219,6 +220,7 @@ void dfsSearchSorted(Node* head, const string& rootLabel, int ageGroup, const st
 void mainMenu(Node* cityA, Node* cityB, Node* cityC);
 void sortingExperimentsMenu(Node* cityA, Node* cityB, Node* cityC);
 void searchingMenu(Node* cityA, Node* cityB, Node* cityC);
+void searchComparisonMenu(Node* cityA, Node* cityB, Node* cityC);
 void linearSearchMenu(Node* cityA, Node* cityB, Node* cityC);
 void binarySearchMenu(Node* cityA, Node* cityB, Node* cityC);
 void bfsSearchMenu(Node* cityA, Node* cityB, Node* cityC);
