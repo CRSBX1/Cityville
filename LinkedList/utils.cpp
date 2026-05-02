@@ -20,7 +20,7 @@ chrono::high_resolution_clock::time_point startTimer() {
 //call this right after the operation finishes
 double stopTimer(chrono::high_resolution_clock::time_point start) {
     auto end = chrono::high_resolution_clock::now();
-    return chrono::duration<double, milli>(end - start).count();
+    return chrono::duration<double, micro>(end - start).count();
 }
 
 //returns which age group index a given age belongs to

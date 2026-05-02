@@ -12,7 +12,7 @@ void printSeparator(int width, char c) {
 void printPerformance(double elapsedMs, size_t memoryBytes) {
     printSeparator(50, '-');
     cout << fixed << setprecision(6);
-    cout << "  Execution Time : " << elapsedMs << " ms" << endl;
+    cout << "  Execution Time : " << elapsedMs << " microseconds" << endl;
     cout << "  Memory Usage   : " << memoryBytes << " bytes" << endl;
     printSeparator(50, '-');
     cout << endl;
